@@ -1,5 +1,7 @@
 from utils import *
 
+### --- GROUP ASSIGNMENT WEEK 1 / 2 --- ###
+
 path = find_path('up.csv')
 
 # encoding = find_encoding(path)
@@ -22,7 +24,6 @@ a = read_sv(return_as=list,
             encoding=encoding,
             delimiter='\t',
             header=True)
-
 
 import sys
 

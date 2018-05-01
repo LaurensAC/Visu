@@ -109,3 +109,4 @@ venv.bak/
 .idea/
 MetroMapsEyeTracking.zip
 MetroMapsEyeTracking/
+!/.gitignore
