@@ -1,6 +1,8 @@
+import math
 import csv
 import os
 import pandas as pd
+import Levenshtein
 from chardet.universaldetector import UniversalDetector
 
 
@@ -47,3 +49,43 @@ def read_sv(return_as, path,
         return [colnames] + rows
 
     return colnames, rows
+
+
+def convert_type(df, **kwargs):
+    """
+    Modifies (!) a DataFrame
+    :param df: pandas DataFrame
+    :param kwargs: column names and the types their values should be cast in
+    """
+    for column, dtype in kwargs.items():
+        df[column] = df[column].astype(dtype, errors='raise')
+
+
+def levenshtein(source, target):
+    """
+    Informally, the Levenshtein distance between two words is the minimum
+    number of single-character edits (insertions, deletions or substitutions)
+    required to change one word into the other. -Wikipedia
+
+    :returns Amount of edits required to change source into target
+    """
+    return Levenshtein.distance(source, target)
+
+
+def best_match(source, target_list):
+    """
+    :return Target with lowest levenshtein distance w.r.t. source
+    """
+    assert type(target_list) == list
+
+    min_distance = math.inf
+    matched_target = str()
+
+    for target in target_list:
+        similarity = levenshtein(source, target)
+        if similarity < min_distance:
+            min_distance = similarity
+            matched_target = target
+
+    return matched_target
+
