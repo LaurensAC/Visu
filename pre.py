@@ -80,7 +80,7 @@ for stimuli, values in stimuli_meta.items():
 
 
 # add Fixation point out of bounds column
-df['FixationOOB'] = pd.Series(data=None, index=df.index)
+df['FixationOOB'] = pd.Series(data=None, index=df.index, dtype=bool)
 
 
 # search resolution and return true if fixation point is out of bounds
