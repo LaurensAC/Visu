@@ -19,7 +19,7 @@ df = read_sv(return_as=pd.DataFrame,
 convert_type(df,
              Timestamp='int64', FixationDuration='int64',
              MappedFixationPointX='int64', MappedFixationPointY='int64',
-             StimuliName='category', description='category')
+             StimuliName='str')
 
 # Making a lookup table for stimuli names and e.g. their resolutions
 stimuli_meta = dict()
@@ -77,22 +77,42 @@ for stimuli, values in stimuli_meta.items():
                    'station_count': parsed_stations[txt_name]})
 
 # Skrrrrpopop
-print(stimuli_meta.popitem())
+#print(stimuli_meta.popitem())
+
+
+
+#add Fixation point out of bounds column
+df['FixationOOB'] = 0
+
+#search resolution and return true if fixation point is out of bounds
+def compareResolution(x, y, stim):
+    if x > stimuli_meta.get(stim).get('x_dim') or x < 0 or y > stimuli_meta.get(stim).get('y_dim') or y < 0:
+        return True
+    return False
+
+#iterate trough each fixation point
+for index, row in df.iterrows():
+     if compareResolution(row['MappedFixationPointX'], row['MappedFixationPointY'], row['StimuliName']):
+         df.set_value(index,'FixationOOB',1)
+
+
+#total amount of fixation points outside of bounds
+print(df['FixationOOB'].sum())
+#percentage outside of bounds
+print(df['FixationOOB'].sum()/ 118126)
+
 
 # Assignment Week 1
 """
 print(df.shape)
 print(df.size)
 print(df.memory_usage(index=False, deep=True))
-
 df = read_sv(return_as=list,
             path=path,
             encoding=encoding,
             delimiter='\t',
             header=True)
-
 import sys
-
 print(sys.getsizeof(df))
 bytes = 0
 for element in df:
