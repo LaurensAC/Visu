@@ -43,7 +43,6 @@ resolutions = pd.read_excel(find_path('xlsx'), header=None,
 
 # Matching names from xlsx file with main file names using Levenshtein distance
 for stimuli, values in stimuli_meta.items():
-
     xslx_name = best_match(values['csv_name'], list(resolutions.city))
 
     x_dim = resolutions.loc[resolutions['city'] == xslx_name]['x'].values[0]
@@ -77,30 +76,31 @@ for stimuli, values in stimuli_meta.items():
                    'station_count': parsed_stations[txt_name]})
 
 # Skrrrrpopop
-#print(stimuli_meta.popitem())
+# print(stimuli_meta.popitem())
 
 
+# add Fixation point out of bounds column
+df['FixationOOB'] = pd.Series(data=None, index=df.index)
 
-#add Fixation point out of bounds column
-df['FixationOOB'] = 0
 
-#search resolution and return true if fixation point is out of bounds
+# search resolution and return true if fixation point is out of bounds
 def compareResolution(x, y, stim):
-    if x > stimuli_meta.get(stim).get('x_dim') or x < 0 or y > stimuli_meta.get(stim).get('y_dim') or y < 0:
+    if x > stimuli_meta.get(stim).get('x_dim') or x < 0 \
+            or y > stimuli_meta.get(stim).get('y_dim') or y < 0:
         return True
     return False
 
-#iterate trough each fixation point
+
+# iterate trough each fixation point
 for index, row in df.iterrows():
-     if compareResolution(row['MappedFixationPointX'], row['MappedFixationPointY'], row['StimuliName']):
-         df.set_value(index,'FixationOOB',1)
+    df.FixationOOB.at[index] = compareResolution(row['MappedFixationPointX'],
+                                                 row['MappedFixationPointY'],
+                                                 row['StimuliName'])
 
-
-#total amount of fixation points outside of bounds
+# total amount of fixation points outside of bounds
 print(df['FixationOOB'].sum())
-#percentage outside of bounds
-print(df['FixationOOB'].sum()/ 118126)
-
+# percentage outside of bounds
+print(df['FixationOOB'].sum() / 118126)
 
 # Assignment Week 1
 """
