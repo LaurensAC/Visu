@@ -43,10 +43,10 @@ def read_sv(return_as, path,
         for row in reader:
             rows.append(row)
 
-    if isinstance(return_as(), pd.DataFrame):
-        return return_as(rows, columns=colnames)
-    elif isinstance(return_as(), list):
-        return [colnames] + rows
+        if isinstance(return_as(), pd.DataFrame):
+            return return_as(rows, columns=colnames)
+        elif isinstance(return_as(), list):
+            return [colnames] + rows
 
     return colnames, rows
 
@@ -72,7 +72,7 @@ def levenshtein(source, target):
     return Levenshtein.distance(source, target)
 
 
-def best_match(source, target_list):
+def lowest_levenshtein(source, target_list):
     """
     :return Target with lowest levenshtein distance w.r.t. source
     """

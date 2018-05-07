@@ -32,7 +32,7 @@ for stimuli in df.StimuliName.unique():
 for stimuli, values in stimuli_meta.items():
     # Capturing what is between first and last underscore
     city_name = stimuli.rsplit('_', 1)[0].split('_', 1)[-1]
-    # Adding the new variable as 'city' to look up in later stage
+    # Adding the new variable to look up in later stage
     values.update({'csv_name': city_name})
 
 # --- Adding resolutions
@@ -43,7 +43,7 @@ resolutions = pd.read_excel(find_path('xlsx'), header=None,
 
 # Matching names from xlsx file with main file names using Levenshtein distance
 for stimuli, values in stimuli_meta.items():
-    xslx_name = best_match(values['csv_name'], list(resolutions.city))
+    xslx_name = lowest_levenshtein(values['csv_name'], list(resolutions.city))
 
     x_dim = resolutions.loc[resolutions['city'] == xslx_name]['x'].values[0]
     y_dim = resolutions.loc[resolutions['city'] == xslx_name]['y'].values[0]
@@ -70,7 +70,7 @@ parsed_stations = dict(zip(txt_names, counts))
 # Adding to lookup table
 for stimuli, values in stimuli_meta.items():
     # Matching station name with stimuli name
-    txt_name = best_match(values['csv_name'], txt_names)
+    txt_name = lowest_levenshtein(values['csv_name'], txt_names)
     # Add to lookup together with number of stations
     values.update({'txt_name': txt_name,
                    'station_count': parsed_stations[txt_name]})
@@ -93,6 +93,7 @@ def compareResolution(x, y, stim):
 
 # iterate trough each fixation point
 for index, row in df.iterrows():
+    # Comparing resolutions and adding result to main dataframe
     df.FixationOOB.at[index] = compareResolution(row['MappedFixationPointX'],
                                                  row['MappedFixationPointY'],
                                                  row['StimuliName'])
