@@ -1,5 +1,6 @@
 from utils import *
 import re
+import json
 
 ### --- GROUP ASSIGNMENT WEEK 1 / 2 --- ###
 
@@ -75,8 +76,9 @@ for stimuli, values in stimuli_meta.items():
     values.update({'txt_name': txt_name,
                    'station_count': parsed_stations[txt_name]})
 
-# Skrrrrpopop
-# print(stimuli_meta.popitem())
+
+with open('stimuli_meta.json', 'w') as f:
+    json.dump(stimuli_meta, f)
 
 
 # add Fixation point out of bounds column
@@ -102,6 +104,14 @@ for index, row in df.iterrows():
 print(df['FixationOOB'].sum())
 # percentage outside of bounds
 print(df['FixationOOB'].sum() / 118126)
+
+
+
+
+
+
+
+
 
 # Assignment Week 1
 """

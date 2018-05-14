@@ -1,6 +1,7 @@
 import math
-import csv
+import subprocess
 import os
+import csv
 import pandas as pd
 import Levenshtein
 from chardet.universaldetector import UniversalDetector
@@ -88,4 +89,19 @@ def lowest_levenshtein(source, target_list):
             matched_target = target
 
     return matched_target
+
+
+def capture_str_subp(command):
+    """
+    Capturing subprocess output as string
+    :param command: shell command to be executed
+    :return: decoded output of shell
+    """
+    subp = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+    return subp.stdout.decode('utf-8')
+
+
+
+
+
 
