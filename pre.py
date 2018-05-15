@@ -94,17 +94,17 @@ def compareResolution(x, y, stim):
 
 
 # iterate trough each fixation point
-for index, row in df.iterrows():
+for index, tempRow in df.iterrows():
     # Comparing resolutions and adding result to main dataframe
-    df.FixationOOB.at[index] = compareResolution(row['MappedFixationPointX'],
-                                                 row['MappedFixationPointY'],
-                                                 row['StimuliName'])
+    df.FixationOOB.at[index] = compareResolution(tempRow['MappedFixationPointX'],
+                                                 tempRow['MappedFixationPointY'],
+                                                 tempRow['StimuliName'])
 
 # total amount of fixation points outside of bounds
-print(df['FixationOOB'].sum())
+#print(df['FixationOOB'].sum())
 # percentage outside of bounds
-print(df['FixationOOB'].sum() / 118126)
-
+#print(df['FixationOOB'].sum() / 118126)
+print('completed preprocessing')
 
 
 
