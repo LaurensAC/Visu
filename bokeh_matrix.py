@@ -4,6 +4,8 @@ from bokeh.layouts import row, widgetbox
 from bokeh.models.widgets import Slider, Select
 from bokeh.plotting import figure, output_file
 from bokeh.models import HoverTool, ColumnDataSource
+from bokeh.palettes import all_palettes
+
 
 from boundingbox import *
 
@@ -21,7 +23,6 @@ source = ColumnDataSource(data=dict(
     yname=[],
     alphas=[],
     colors=[],
-    count=[],
 ))
 
 #initiate plot
@@ -40,21 +41,22 @@ p.axis.major_label_standoff = 0
 p.xaxis.major_label_orientation = np.pi/3
 
 #plotting the actual rectangles
-p.rect('xname', 'yname', 0.9, 0.9, source=source,
+p.rect('xname', 'yname', 0.9, 0.9, source=source, color='colors',
        alpha='alphas', line_color=None,
-       hover_line_color='black', hover_color='colors')
+       hover_line_color='black', hover_color='black')
 
 #Configure Hover tool
 p.select_one(HoverTool).tooltips = [
     ('names', '@yname, @xname'),
-    ('Overlap', '@count')]
+    ('Similarity score', '@count')]
 
-
-#set up cities list
+#set up widgets lists
 cities = list(stimuli_names)
+colorSchemes = ['SteelBlue', 'Tomato', 'MediumSeaGreen', 'Inferno', 'Magma', 'Plasma', 'Viridis']
 
 #Set up widgets
 city_select = Select(title="City", options=cities)
+colorScheme_select = Select(title="Color Scheme", value = "SteelBlue", options=colorSchemes)
 
 #Set up callbacks
 def update_title(attrname, old, new):
@@ -67,14 +69,22 @@ def update_data(attrname, old, new):
     
     # Get the current slider values
     city = city_select.value
+    colorScheme = colorScheme_select.value
 
     # Generate the new adjacency matrix
     alpha = []
     color = []
     xname = []
     yname = []
+    count = []
 
-    #retrieve similarity score from dictionary
+    gradient = 0
+
+    if colorScheme not in ['Tomato', 'SteelBlue', 'MediumSeaGreen']:
+        colormap = all_palettes[colorScheme][256]
+        gradient = 1
+
+    #retrieve similarity score from dictionary and add color
     for i in range(0, len(user_list)):
         for j in range(0, len(user_list)):
             value = adjacency[city][user_list[i]].get(user_list[j], 'Key not present')
@@ -82,8 +92,17 @@ def update_data(attrname, old, new):
                 continue
             xname.append(user_list[i])
             yname.append(user_list[j])
-            alpha.append(value)
-            color.append('black')
+            count.append(value)
+
+            if gradient == 1:
+                color.append(colormap[255 - int(round(255 * value))])
+                alpha.append(1.0)
+            else:
+                alpha.append(value)
+                color.append(colorScheme)
+
+
+
 
     #swap out the old data for the new data
     source.data = dict(
@@ -91,7 +110,7 @@ def update_data(attrname, old, new):
         yname=yname,
         alphas=alpha,
         colors=color,
-        count=alpha,
+        count=count,
     )
 
     #update the x and y labels
@@ -101,11 +120,13 @@ def update_data(attrname, old, new):
     #log to console
     print('Updated Plot')
 
+
 #updates plot data on_change
 city_select.on_change('value', update_data)
+colorScheme_select.on_change('value', update_data)
 
 # Set up layouts and add to document
-inputs = widgetbox(city_select)
+inputs = widgetbox([city_select, colorScheme_select])
 
 #Flask/Bokeh magic
 curdoc().add_root(row(inputs, p))
