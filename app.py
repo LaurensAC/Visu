@@ -22,7 +22,10 @@ def serve(script, port):
 
     # Killing old version
     if script in SERVING:
-        os.kill(SERVING[script]['bokeh_pid'], signal.SIGKILL)
+        try:
+            os.kill(SERVING[script]['bokeh_pid'], signal.SIGKILL)
+        except ProcessLookupError:
+            print("{} is already deddo".format(script))
 
     def inner():
         # Location of bokeh script
@@ -32,16 +35,16 @@ def serve(script, port):
 
         # Whitelist cross site connections e.g. this flask application
         cmd += "--allow-websocket-origin {} ".format(SOCKET)
-        cmd += "--log-level debug "
+        cmd += "--log-level info "
         # Log memory usage, frequency in ms
-        cmd += "--mem-log-frequency=300000"
+        cmd += "--mem-log-frequency=30000"
 
         # Spawn
         proc = subprocess.Popen(
             [cmd],
             shell=True,
             stderr=subprocess.PIPE,
-            stdout=open('out.txt', 'w'),
+            # stdout=open('out.txt', 'w'),
             universal_newlines=True
         )
 

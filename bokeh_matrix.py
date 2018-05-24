@@ -1,4 +1,5 @@
 import numpy as np
+from utils import track
 from bokeh.io import curdoc
 from bokeh.layouts import row, widgetbox
 from bokeh.models.widgets import Slider, Select
@@ -102,6 +103,7 @@ colorScheme_select = Select(title="Color Scheme", value="SteelBlue", options=col
 
 
 # Set up callbacks
+@track
 def update_title(attrname, old, new):
    p.title.text = city_select.value
 
@@ -149,6 +151,7 @@ source.callback = CustomJS(args=dict(source4=source4), code="""
 ###Update data###
 #################
 
+@track
 def update_data(attrname, old, new):
    # Get the current slider values
    city = city_select.value
