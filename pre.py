@@ -1,6 +1,7 @@
 from utils import *
 import re
 import json
+import types
 
 ### --- GROUP ASSIGNMENT WEEK 1 / 2 --- ###
 
@@ -118,4 +119,4 @@ if 'FixationOOB' not in df.columns:
     df.to_csv('up.csv', sep='\t', header=True)
 
 print('Completed preprocessing')
-print('Global variables: "df" and "stimuli_meta (!)"')
+print('Global variables: "df" and "stimuli_meta" (!)')
