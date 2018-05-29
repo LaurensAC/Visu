@@ -22,67 +22,67 @@ convert_type(df,
              MappedFixationPointX='int64', MappedFixationPointY='int64',
              StimuliName='str')
 
-# Making a lookup table for stimuli names and e.g. their resolutions
-stimuli_meta = dict()
-# The different maps
-for stimuli in df.StimuliName.unique():
-    # Keys are 'StimuliName' values
-    stimuli_meta[stimuli] = dict()
 
-# --- Adding clean city names e.g. "19b_New_York_S2.jpg" becomes "New_York"
-for stimuli, values in stimuli_meta.items():
-    # Capturing what is between first and last underscore
-    city_name = stimuli.rsplit('_', 1)[0].split('_', 1)[-1]
-    # Adding the new variable to look up in later stage
-    values.update({'csv_name': city_name})
+@track
+def compute_metadata():
+    stimuli_meta = dict()
+    # The different maps
+    for stimuli in df.StimuliName.unique():
+        # Keys are 'StimuliName' values
+        stimuli_meta[stimuli] = dict()
 
-# --- Adding resolutions
+    # --- Adding clean city names e.g. "19b_New_York_S2.jpg" becomes "New_York"
+    for stimuli, values in stimuli_meta.items():
+        # Capturing what is between first and last underscore
+        city_name = stimuli.rsplit('_', 1)[0].split('_', 1)[-1]
+        # Adding the new variable to look up in later stage
+        values.update({'csv_name': city_name})
 
-# Reading resolutions into memory as DataFrame
-resolutions = pd.read_excel(find_path('xlsx'), header=None,
-                            names=['city', 'x', 'y']).dropna()  # Dropping NaNs
+    # --- Adding resolutions
 
-# Matching names from xlsx file with main file names using Levenshtein distance
-for stimuli, values in stimuli_meta.items():
-    xslx_name = lowest_levenshtein(values['csv_name'], list(resolutions.city))
+    # Reading resolutions into memory as DataFrame
+    resolutions = pd.read_excel(find_path('xlsx'), header=None,
+                                names=['city', 'x',
+                                       'y']).dropna()  # Dropping NaNs
 
-    x_dim = resolutions.loc[resolutions['city'] == xslx_name]['x'].values[0]
-    y_dim = resolutions.loc[resolutions['city'] == xslx_name]['y'].values[0]
+    # Matching names from xlsx file with main file names using Levenshtein distance
+    for stimuli, values in stimuli_meta.items():
+        xslx_name = lowest_levenshtein(values['csv_name'],
+                                       list(resolutions.city))
 
-    values.update({'xlsx_name': xslx_name,
-                   'x_dim': x_dim,
-                   'y_dim': y_dim})
+        x_dim = resolutions.loc[resolutions['city'] == xslx_name]['x'].values[
+            0]
+        y_dim = resolutions.loc[resolutions['city'] == xslx_name]['y'].values[
+            0]
 
-# --- Adding station count ("complexity")
+        values.update({'xlsx_name': xslx_name,
+                       'x_dim': x_dim,
+                       'y_dim': y_dim})
 
-# Reading as string
-stations = open(find_path('complexity.txt'), 'r').read()
-# Listing station names
-txt_names = re.findall(r'(\w+\s*\w+\s*(?=\(\d+\)))', stations)
-# Listing station counts
-count_matches = re.findall(r'(\(\d+\))', stations)
+    # --- Adding station count ("complexity")
 
-# Removing brackets from the matches, changing type to int
-counts = [int(x.replace(')', '').replace('(', '')) for x in count_matches]
-# Joining names with counts in a dict, names as keys
-assert len(counts) == len(txt_names)
-parsed_stations = dict(zip(txt_names, counts))
+    # Reading as string
+    stations = open(find_path('complexity.txt'), 'r').read()
+    # Listing station names
+    txt_names = re.findall(r'(\w+\s*\w+\s*(?=\(\d+\)))', stations)
+    # Listing station counts
+    count_matches = re.findall(r'(\(\d+\))', stations)
 
-# Adding to lookup table
-for stimuli, values in stimuli_meta.items():
-    # Matching station name with stimuli name
-    txt_name = lowest_levenshtein(values['csv_name'], txt_names)
-    # Add to lookup together with number of stations
-    values.update({'txt_name': txt_name,
-                   'station_count': parsed_stations[txt_name]})
+    # Removing brackets from the matches, changing type to int
+    counts = [int(x.replace(')', '').replace('(', '')) for x in count_matches]
+    # Joining names with counts in a dict, names as keys
+    assert len(counts) == len(txt_names)
+    parsed_stations = dict(zip(txt_names, counts))
 
+    # Adding to lookup table
+    for stimuli, values in stimuli_meta.items():
+        # Matching station name with stimuli name
+        txt_name = lowest_levenshtein(values['csv_name'], txt_names)
+        # Add to lookup together with number of stations
+        values.update({'txt_name': txt_name,
+                       'station_count': parsed_stations[txt_name]})
 
-with open('stimuli_meta.json', 'w') as f:
-    json.dump(stimuli_meta, f)
-
-
-# add Fixation point out of bounds column
-df['FixationOOB'] = pd.Series(data=None, index=df.index, dtype=bool)
+    return stimuli_meta
 
 
 # search resolution and return true if fixation point is out of bounds
@@ -93,40 +93,29 @@ def compareResolution(x, y, stim):
     return False
 
 
-# iterate trough each fixation point
-for index, tempRow in df.iterrows():
-    # Comparing resolutions and adding result to main dataframe
-    df.FixationOOB.at[index] = compareResolution(tempRow['MappedFixationPointX'],
-                                                 tempRow['MappedFixationPointY'],
-                                                 tempRow['StimuliName'])
+# Computes and writes metadata to your disk if you do not yet have it
+if not find_path('stimuli_meta.json'):
+    stimuli_meta = compute_metadata()
+    with open('stimuli_meta.json', 'w') as f:
+        json.dump(stimuli_meta, f)
+else:  # Read from disk otherwise
+    print('Found metadata at {}'.format(find_path('meta.json')))
+    with open(find_path('stimuli_meta.json'), 'r') as f:
+        stimuli_meta = json.load(f)
 
-# total amount of fixation points outside of bounds
-#print(df['FixationOOB'].sum())
-# percentage outside of bounds
-#print(df['FixationOOB'].sum() / 118126)
-print('completed preprocessing')
+# Same for the OOB column
+if 'FixationOOB' not in df.columns:
+    # add Fixation point out of bounds column
+    df['FixationOOB'] = pd.Series(data=None, index=df.index, dtype=bool)
+    # iterate trough each fixation point
+    for index, tempRow in df.iterrows():
+        # Comparing resolutions and adding result to main dataframe
+        df.FixationOOB.at[index] = compareResolution(
+            tempRow['MappedFixationPointX'],
+            tempRow['MappedFixationPointY'],
+            tempRow['StimuliName'])
 
+    df.to_csv('up.csv', sep='\t', header=True)
 
-
-
-
-
-
-
-# Assignment Week 1
-"""
-print(df.shape)
-print(df.size)
-print(df.memory_usage(index=False, deep=True))
-df = read_sv(return_as=list,
-            path=path,
-            encoding=encoding,
-            delimiter='\t',
-            header=True)
-import sys
-print(sys.getsizeof(df))
-bytes = 0
-for element in df:
-    bytes += sys.getsizeof(element)
-print(bytes)
-"""
+print('Completed preprocessing')
+print('Global variables: "df" and "stimuli_meta (!)"')

@@ -8,7 +8,8 @@ from chardet.universaldetector import UniversalDetector
 from functools import wraps
 from time import time
 
-# Wrap a function with @track to check execution time, writes to log
+
+# Wrap a function with @track to check execution time
 def track(f):
     @wraps(f)
     def wrap(*args, **kwargs):
@@ -16,9 +17,10 @@ def track(f):
         result = f(*args, **kwargs)
         te = time()
         print('function:{} \n\t args:[{}] \n\t took {} seconds'
-                      .format(f.__name__, args, round(te-ts, 4)))
+              .format(f.__name__, args, round(te-ts, 4)))
         return result
     return wrap
+
 
 def find_path(end_of_file=str()):
     for root, dirs, files in os.walk(os.getcwd()):
