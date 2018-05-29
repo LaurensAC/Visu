@@ -83,6 +83,13 @@ def compute_metadata():
         values.update({'txt_name': txt_name,
                        'station_count': parsed_stations[txt_name]})
 
+    # --- Adding name as displayed in widget
+    for stimuli, values in stimuli_meta.items():
+        xb_tag = stimuli.rsplit('_', 1)[0].split('_', 1)[0]
+        s_tag = stimuli.rsplit('_', 1)[-1][:-4]
+        widget_name = values['txt_name'] + ' - ' + xb_tag + '_' + s_tag
+        values.update({'widget_name': widget_name})
+
     return stimuli_meta
 
 

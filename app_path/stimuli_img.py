@@ -13,24 +13,25 @@ bordeaux_source = get_img('Bordeaux_S2.jpg')
 
 # Filenames will be used to select a stimulus
 stimuli = list(meta.keys())
-cities = list(cities_meta.keys())
 
-for i, name in enumerate(stimuli):
-    stimuli[i] =
+city_select_options = []
+for k, v in meta.items():
+    city_select_options.append(meta[k]['txt_name'] + ' - ' + k)
+
+stimuli_meta = meta
 
 
 
-# --- Traces
 def test():
     # _.-*-._ Setting up data sources _.-*-._
 
     meta = read_metadata()
-    df = read_main_df
+    df = read_main_df()
     tokyo_source = get_img('Tokyo_S1.jpg')
     bordeaux_source = get_img('Bordeaux_S2.jpg')
 
     # Filenames will be used to select a stimulus
-    stimuli = cities
+    stimuli = city_select_options
 
     # --- Traces
 
@@ -61,7 +62,7 @@ def test():
     subset_fixations = Slider(start=0, end=10, value=1, step=1, title="# of "
                                                                       "fixations")
 
-    subset_fix_avg = Slider(start=0, end=10, value=1, step=1,
+    subset_fix_avg = Slider(start=0, end=10, value=1, step=.1,
                             title="Avg. fixation duration")
 
     subset_compl_time = Slider(start=0, end=10, value=1, step=1,
