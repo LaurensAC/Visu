@@ -3,7 +3,7 @@ from bokeh.plotting import figure
 from bokeh.models import TextInput, ColumnDataSource, CustomJS
 # ---
 from read import read_main_df, read_metadata
-from sources import get_img, get_city_select_options
+from sources import get_img, get_city_select_options, get_filename
 
 meta = read_metadata()
 cities_meta = get_city_select_options(meta)
@@ -13,6 +13,7 @@ bordeaux_source = get_img('Bordeaux_S2.jpg')
 
 
 def test():
+
     # _.-*-._ Setting up data sources _.-*-._
 
     meta = read_metadata()
@@ -20,7 +21,7 @@ def test():
     tokyo_source = get_img('Tokyo_S1.jpg')
     bordeaux_source = get_img('Bordeaux_S2.jpg')
 
-    select_options = get_city_select_options(meta)
+    stimulus_select_ds = get_city_select_options(meta)
 
     # --- Traces
 
@@ -28,31 +29,13 @@ def test():
     plot2.image_rgba(image='image', x=0, y=0, dw=10, dh=10,
                      source=bordeaux_source)
 
-    stimulus_select_ds = ColumnDataSource(data=dict(options=select_options))
-
     # _.-*-._ Widgets _.-*-._
 
+    # Selecting stimulus, filter options through ti
     stimulus_select = Select(options=stimulus_select_ds.data['options'])
-
     ti = TextInput(placeholder='Enter filter', title='Stimulus',
                    callback=CustomJS(args=dict(ds=stimulus_select_ds, s=stimulus_select),
                                      code="s.options = ds.data['options'].filter(i => i.includes(cb_obj.value));"))
-
-
-    color_select = RadioGroup(labels=["b/w", "color"],
-                              active=0)
-
-    similarity_function = Select(title="Similarity Function", value='---',
-                                 options=["Simple Jaccard BBoxes"])
-
-    subset_fixations = Slider(start=0, end=10, value=1, step=1, title="# of "
-                                                                      "fixations")
-
-    subset_fix_avg = Slider(start=0, end=10, value=1, step=.1,
-                            title="Avg. fixation duration")
-
-    subset_compl_time = Slider(start=0, end=10, value=1, step=1,
-                               title="Completion time")
 
     color_scheme = Select(title="Color Scheme", value="----", options=[
         "Inferno"])
@@ -79,12 +62,16 @@ def test():
 
     def plot_new_stimuli(attrname, old, new, kwargs=plot_kwargs):
         # TODO also update background map and 'main' source
-
+        print(stimulus_select.value)
         # Retrieve metadata of the stimulus
-        stimulus_meta = stimulus_select.value
+        f = get_filename(meta, stimulus_select.value)
 
-        x_dim = int(stimulus_meta['x_dim'])
-        y_dim = int(stimulus_meta['y_dim'])
+        x_dim = int(meta[f]['x_dim'])
+        y_dim = int(meta[f]['y_dim'])
+
+        bordeaux_source.data = tokyo_source.data
+
+        stimulus_meta = meta[f]
 
         plot_w = x_dim + kwargs['min_border_left'] + kwargs['min_border_right']
         plot_h = y_dim + kwargs['min_border_top'] + kwargs['min_border_bottom']
@@ -92,15 +79,17 @@ def test():
         city = stimulus_meta['txt_name']
         station_count = stimulus_meta['station_count']
 
+        """
         plot_colour = figure(title=city,
-                             x_range=(0, x_dim),
-                             y_range=(0, y_dim),
-                             # plot_width=plot_w,
-                             # plot_height=plot_h,
-                             **kwargs)
+                     x_range=(0, x_dim),
+                     y_range=(0, y_dim),
+                     # plot_width=plot_w,
+                     # plot_height=plot_h,
+                     **kwargs)
 
         plot_colour.image_rgba(image='image', x=0, y=0, dw=10, dh=10,
                                source=tokyo_source)
+        """
 
     stimulus_select.on_change('value', plot_new_stimuli)
 
@@ -108,9 +97,8 @@ def test():
     # widgets = widgetbox(city_select, stimulus_select)
 
     return ti, stimulus_select, \
-           similarity_function, subset_compl_time, subset_fix_avg, \
-           subset_fixations, color_select, color_scheme, \
-           plot2
+            color_scheme, \
+            plot2
 
 #    layout = row(inputs, plot1, plot2)
 #    curdoc().add_root(layout)

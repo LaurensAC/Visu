@@ -5,7 +5,6 @@ import pandas as pd
 # Use this module to read data from disk
 
 
-@track
 def read_main_df():
     # Reading main data into memory
     df = read_sv(return_as=pd.DataFrame,
@@ -23,7 +22,6 @@ def read_main_df():
     return df
 
 
-@track
 def read_metadata():
     if not find_path('stimuli_meta.json'):
         raise FileNotFoundError

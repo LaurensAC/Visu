@@ -3,7 +3,7 @@ import subprocess
 import os
 import csv
 import pandas as pd
-import Levenshtein
+# import Levenshtein
 from chardet.universaldetector import UniversalDetector
 from functools import wraps
 from time import time
@@ -85,8 +85,8 @@ def levenshtein(source, target):
 
     :returns Amount of edits required to change source into target
     """
-    return Levenshtein.distance(source, target)
-
+    # return Levenshtein.distance(source, target)
+    pass
 
 def lowest_levenshtein(source, target_list):
     """

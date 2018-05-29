@@ -61,8 +61,8 @@ class Skeleton(object):
         for figury in self.bokehs:
             for figure in figury:
                 if isinstance(figure, bokeh.models.Widget):
-                    print(str(figure))
-                    print(type(figure))
+                    #print(str(figure))
+                    #print(type(figure))
                     self.widgets.append(figure)
                 else:
                     self.figures.append(figure)

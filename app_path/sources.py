@@ -7,7 +7,6 @@ from utils import find_path, track
 # Use this module to construct ColumnDataSources (in memory)
 
 
-@track
 def get_img(stimulus):
     # Loading with PIL
     raw_img = Image.open(find_path(stimulus)).convert('RGBA')
@@ -23,14 +22,19 @@ def get_img(stimulus):
     return ColumnDataSource({'image': [img]})
 
 
-@track
 def get_city_select_options(meta):
     options = list()
     for filename, values in meta.items():
-        print(values)
         options.append(values['widget_name'])
-    return options
+    return ColumnDataSource(data=dict(options=options))
 
+
+# Get a filename given a selected option
+def get_filename(meta, option):
+    for f, values in meta.items():
+        if values['widget_name'] == option:
+            return f
+    return NotImplementedError
 
 # TODO
 def load_matrix(stimulus, metric):
