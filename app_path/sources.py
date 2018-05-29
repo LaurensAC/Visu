@@ -25,17 +25,11 @@ def get_img(stimulus):
 
 @track
 def get_city_select_options(meta):
-    # --- Metadata with city names as keys
-    cities_meta = dict()
-    for stimulus, values in meta.items():
-        city_name = values['txt_name']
-        if city_name in cities_meta.keys():
-            cities_meta[city_name].update({stimulus: values})
-        else:
-            cities_meta[city_name] = dict()
-            cities_meta[city_name].update({stimulus: values})
-
-    return cities_meta
+    options = list()
+    for filename, values in meta.items():
+        print(values)
+        options.append(values['widget_name'])
+    return options
 
 
 # TODO

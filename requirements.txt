@@ -22,6 +22,6 @@ pytz==2018.4
 PyYAML==3.12
 scipy==1.1.0
 six==1.11.0
-tornado==5.0.2
+tornado==4.3
 Werkzeug==0.14.1
 xlrd==1.1.0

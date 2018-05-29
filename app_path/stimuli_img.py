@@ -11,16 +11,6 @@ df = read_main_df()
 tokyo_source = get_img('Tokyo_S1.jpg')
 bordeaux_source = get_img('Bordeaux_S2.jpg')
 
-# Filenames will be used to select a stimulus
-stimuli = list(meta.keys())
-
-city_select_options = []
-for k, v in meta.items():
-    city_select_options.append(meta[k]['txt_name'] + ' - ' + k)
-
-stimuli_meta = meta
-
-
 
 def test():
     # _.-*-._ Setting up data sources _.-*-._
@@ -30,8 +20,7 @@ def test():
     tokyo_source = get_img('Tokyo_S1.jpg')
     bordeaux_source = get_img('Bordeaux_S2.jpg')
 
-    # Filenames will be used to select a stimulus
-    stimuli = city_select_options
+    select_options = get_city_select_options(meta)
 
     # --- Traces
 
@@ -39,19 +28,16 @@ def test():
     plot2.image_rgba(image='image', x=0, y=0, dw=10, dh=10,
                      source=bordeaux_source)
 
-    ds = ColumnDataSource(data=dict(options=stimuli))
-
-    # Setting initial values
-    s = Select(options=ds.data['options'])
-    ti = TextInput(placeholder='Enter filter',
-                   callback=CustomJS(args=dict(ds=ds, s=s),
-                                     code="s.options = ds.data['options'].filter(i => i.includes(cb_obj.value));"))
+    stimulus_select_ds = ColumnDataSource(data=dict(options=select_options))
 
     # _.-*-._ Widgets _.-*-._
 
-    complexity_filter = Select(title="Complexity", options=["low", "medium",
-                                                            "high"])
-    city_select = s
+    stimulus_select = Select(options=stimulus_select_ds.data['options'])
+
+    ti = TextInput(placeholder='Enter filter', title='Stimulus',
+                   callback=CustomJS(args=dict(ds=stimulus_select_ds, s=stimulus_select),
+                                     code="s.options = ds.data['options'].filter(i => i.includes(cb_obj.value));"))
+
 
     color_select = RadioGroup(labels=["b/w", "color"],
                               active=0)
@@ -95,7 +81,7 @@ def test():
         # TODO also update background map and 'main' source
 
         # Retrieve metadata of the stimulus
-        stimulus_meta = s.value
+        stimulus_meta = stimulus_select.value
 
         x_dim = int(stimulus_meta['x_dim'])
         y_dim = int(stimulus_meta['y_dim'])
@@ -116,12 +102,12 @@ def test():
         plot_colour.image_rgba(image='image', x=0, y=0, dw=10, dh=10,
                                source=tokyo_source)
 
-    city_select.on_change('value', plot_new_stimuli)
+    stimulus_select.on_change('value', plot_new_stimuli)
 
     # Set up layouts and add to document
     # widgets = widgetbox(city_select, stimulus_select)
 
-    return complexity_filter, city_select, \
+    return ti, stimulus_select, \
            similarity_function, subset_compl_time, subset_fix_avg, \
            subset_fixations, color_select, color_scheme, \
            plot2

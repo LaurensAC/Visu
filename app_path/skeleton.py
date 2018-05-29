@@ -78,7 +78,7 @@ class Skeleton(object):
         l = row(inputs, right)
 
         curdoc().add_root(l)
-        curdoc().title = str(FLASK_PARAMS['layout'])
+        curdoc().title = 'aye'
 
 
 dshb = Skeleton()
