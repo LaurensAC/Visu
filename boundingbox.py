@@ -1,9 +1,13 @@
-from pre import *
 import numpy as np
+from read import read_main_df
+
+df = read_main_df()
 
 #load users and stimuli names from the dataframe
 users = df.user.unique()
 stimuli_names = df.StimuliName.unique()
+
+
 
 #dictionary to store x/y max/min values
 bounding = {}

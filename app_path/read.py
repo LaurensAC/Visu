@@ -23,6 +23,8 @@ def read_main_df():
                  MappedFixationPointX='int64', MappedFixationPointY='int64',
                  StimuliName='str', FixationOOB='?')
 
+    print('Read df as pd.DataFrame')
+
     return df
 
 
