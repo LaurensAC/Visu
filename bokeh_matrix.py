@@ -8,11 +8,15 @@ from bokeh.models import ColumnDataSource, LogColorMapper, LogTicker, ColorBar, 
 from bokeh.palettes import all_palettes
 from bokeh.models.tools import *
 from bokeh.models.glyphs import ImageURL
-
+from read import *
 from boundingbox import *
 
 # flask magic
 url_params = curdoc().session_context.request.arguments
+
+##### CHECK FF OF IK DIT GEBROKEN HEB ###
+
+stimuli_meta = read_metadata()
 
 ############
 ###Matrix###
