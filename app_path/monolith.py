@@ -6,9 +6,11 @@ from bokeh.io import curdoc
 # ---
 from read import read_main_df, read_metadata
 from sources import get_img, get_city_select_options, get_filename
-# _.-*-._ Data sources _.-*-._
 
-#curdoc().session_context.request.arguments
+FLASK_ARGS = curdoc().session_context.request.arguments
+
+
+# _.-*-._ Data sources _.-*-._
 
 meta = read_metadata()
 df = read_main_df()
@@ -28,7 +30,7 @@ ti = TextInput(placeholder='Enter filter', title='Stimulus',
 color_scheme = Select(title="Color Scheme", value="----", options=[
     "Inferno"])
 
-# TODO metric_select, sorting_select,
+# TODO metric_select, sorting_select, heatmap_tunes
 widgets = [ti, stimulus_select, color_scheme]
 
 # _.-*-._ Plots _.-*-._
