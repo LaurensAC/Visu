@@ -19,7 +19,7 @@ def get_img(stimulus):
     # with a lower-left origin
     view[:,:,:] = np.flipud(np.asarray(raw_img))
 
-    return ColumnDataSource({'image': [img]})
+    return ColumnDataSource({'image': [img], 'xw': [xdim], 'yw': [ydim]})
 
 
 def get_city_select_options(meta):

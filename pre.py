@@ -1,9 +1,7 @@
 from utils import *
 import re
 import json
-import types
-
-### --- GROUP ASSIGNMENT WEEK 1 / 2 --- ###
+import numpy as np
 
 # Path to csv
 path = find_path('up.csv')
@@ -25,6 +23,7 @@ convert_type(df,
 
 
 @track
+# Unsupported atm
 def compute_metadata():
     stimuli_meta = dict()
     # The different maps
@@ -48,6 +47,8 @@ def compute_metadata():
 
     # Matching names from xlsx file with main file names using Levenshtein distance
     for stimuli, values in stimuli_meta.items():
+        print(values['csv_name'])
+        print(list(resolutions.city))
         xslx_name = lowest_levenshtein(values['csv_name'],
                                        list(resolutions.city))
 
@@ -92,17 +93,8 @@ def compute_metadata():
 
     return stimuli_meta
 
-
-# search resolution and return true if fixation point is out of bounds
-def compareResolution(x, y, stim):
-    if x > stimuli_meta.get(stim).get('x_dim') or x < 0 \
-            or y > stimuli_meta.get(stim).get('y_dim') or y < 0:
-        return True
-    return False
-
-
 # Computes and writes metadata to your disk if you do not yet have it
-if not find_path('stimuli_meta.json'):
+if not (find_path('stimuli_meta.json') and find_path('up.csv')):
     stimuli_meta = compute_metadata()
     with open('stimuli_meta.json', 'w') as f:
         json.dump(stimuli_meta, f)
@@ -111,10 +103,20 @@ else:  # Read from disk otherwise
     with open(find_path('stimuli_meta.json'), 'r') as f:
         stimuli_meta = json.load(f)
 
+
+# search resolution and return true if fixation point is out of bounds
+def compareResolution(x, y, stim):
+    if x > stimuli_meta.get(stim).get('x_dim') or x < 0 \
+            or y > stimuli_meta.get(stim).get('y_dim') or y < 0:
+        print
+        return True
+    return False
+
+
 # Same for the OOB column
 if 'FixationOOB' not in df.columns:
     # add Fixation point out of bounds column
-    df['FixationOOB'] = pd.Series(data=None, index=df.index, dtype=bool)
+    df['FixationOOB'] = pd.Series(data=None, index=df.index, dtype='bool')
     # iterate trough each fixation point
     for index, tempRow in df.iterrows():
         # Comparing resolutions and adding result to main dataframe
@@ -123,7 +125,11 @@ if 'FixationOOB' not in df.columns:
             tempRow['MappedFixationPointY'],
             tempRow['StimuliName'])
 
+    df.fillna({'FixationOOB': True})
+
     df.to_csv('up.csv', sep='\t', header=True)
+
+
 
 print('Completed preprocessing')
 print('Global variables: "df" and "stimuli_meta" (!)')

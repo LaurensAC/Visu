@@ -119,9 +119,11 @@ source4 = ColumnDataSource(data=dict(
    MappedFixationPointY=[],
 ))
 
-p4 = figure(title="Bokeh Map", toolbar_location=None)
-p4.scatter('MappedFixationPointX', 'MappedFixationPointY', size=15,
-          line_color="navy", source=source4, fill_color="orange", alpha=0.5)
+p4 = figure(title="Bokeh Map", tools="save")
+p4.circle('MappedFixationPointX', 'MappedFixationPointY', size=15,
+          source=source4, fill_color="orange", alpha=0.5)
+p4.line('MappedFixationPointX', 'MappedFixationPointY',
+           line_color="navy", source=source4, alpha=0.5)
 p4.y_range = Range1d(1200,0)
 
 source.callback = CustomJS(args=dict(source4=source4), code="""

@@ -1,24 +1,28 @@
 from utils import find_path, convert_type, read_sv, track
 import json
 import pandas as pd
+import numpy as np
 
 # Use this module to read data from disk
-
 
 def read_main_df():
     # Reading main data into memory
     df = read_sv(return_as=pd.DataFrame,
                  path=find_path('up.csv'),
-                 encoding='UTF-8',
+                 encoding='utf-8',
                  delimiter='\t',
                  header=True)
+
+    assert 'FixationOOB' in df.columns
+
+    for i, row in df.iterrows():
+            df.at[i, 'FixationOOB'] = eval(df.at[i, 'FixationOOB'])
 
     convert_type(df,
                  Timestamp='int64', FixationDuration='int64',
                  MappedFixationPointX='int64', MappedFixationPointY='int64',
-                 StimuliName='str')
+                 StimuliName='str', FixationOOB='?')
 
-    assert 'FixationOOB' in df.columns
     return df
 
 

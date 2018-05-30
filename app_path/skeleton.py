@@ -16,7 +16,7 @@ from bokeh.layouts import row, column, widgetbox, layout
 
 FLASK_PARAMS = curdoc().session_context.request.arguments
 SCRIPTS = {  # TODO "input_panel": 1,
-    #  "adjacency_matrix": 2,
+    # "adjacency_matrix": 2,
     # TODO "descriptives": 3,
     "stimuli_img": 4
 }
