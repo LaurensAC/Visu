@@ -1,10 +1,10 @@
 from PIL import Image
 import numpy as np
 from bokeh.models import ColumnDataSource
-# ---
+
 from utils import find_path, track
 
-# Use this module to construct ColumnDataSources (in memory)
+# Use this module to construct ColumnDataSources
 
 
 def get_img(stimulus):
@@ -17,7 +17,7 @@ def get_img(stimulus):
     view = img.view(dtype=np.uint8).reshape((ydim, xdim, 4))
     # Copy the RGBA image into view, flipping it so it comes right-side up
     # with a lower-left origin
-    view[:,:,:] = np.flipud(np.asarray(raw_img))
+    view[:, :, :] = np.flipud(np.asarray(raw_img))
 
     return ColumnDataSource({'image': [img], 'xw': [xdim], 'yw': [ydim]})
 
@@ -80,10 +80,3 @@ def scanpaths_dict(stim, users, df):
     print(adjacency)
     return adjacency
 
-
-from read import read_main_df
-
-df = read_main_df()
-stimuli_names = df.StimuliName.unique()
-
-scanpaths_dict('11_Bologna_S1.jpg', df.user.unique(), df)

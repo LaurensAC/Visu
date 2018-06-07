@@ -14,14 +14,14 @@ def read_main_df():
                  header=True)
 
     assert 'FixationOOB' in df.columns
-
-    for i, row in df.iterrows():
-            df.at[i, 'FixationOOB'] = eval(df.at[i, 'FixationOOB'])
+    # Mapping FixationOOB strings to numpy booleans
+    OOBstatus = {'True': True, 'False': False, 'Edge': False}
+    df['FixationOOB'].map(OOBstatus)
 
     convert_type(df,
                  Timestamp='int64', FixationDuration='int64',
                  MappedFixationPointX='int64', MappedFixationPointY='int64',
-                 StimuliName='str', FixationOOB='?')
+                 StimuliName='str')
 
     print('Read df as pd.DataFrame')
 
@@ -29,11 +29,17 @@ def read_main_df():
 
 
 def read_metadata():
-    if not find_path('stimuli_meta.json'):
-        raise FileNotFoundError
-    else:  # Read from disk otherwise
-        print('Found metadata at {}'.format(find_path('meta.json')))
-        with open(find_path('stimuli_meta.json'), 'r') as f:
-            stimuli_meta = json.load(f)
-
+    print('Found metadata at {}'.format(find_path('meta.json')))
+    with open(find_path('stimuli_meta.json'), 'r') as f:
+        stimuli_meta = json.load(f)
     return stimuli_meta
+
+a = read_main_df()
+
+print(a.dtypes)
+
+for item in a.FixationOOB:
+    if item == False:
+        print(item)
+    else:
+        print(item)

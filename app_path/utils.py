@@ -27,6 +27,7 @@ def find_path(end_of_file=str()):
         for file in files:
             if file.endswith(end_of_file):
                 return os.path.join(root, file)
+    raise FileNotFoundError
 
 
 def find_encoding(path_to_file):

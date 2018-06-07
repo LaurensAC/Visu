@@ -24,3 +24,4 @@ six==1.11.0
 tornado==4.3
 Werkzeug==0.14.1
 xlrd==1.1.0
+more-itertools==4.2.0
