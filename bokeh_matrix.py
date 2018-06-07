@@ -1,5 +1,5 @@
 import numpy as np
-from utils import track
+from utils import track, seriationMDS, sorting, seriationMDS3, seriationMDS5
 from bokeh.io import curdoc
 from bokeh.layouts import row, widgetbox
 from bokeh.models.widgets import Slider, Select
@@ -10,6 +10,7 @@ from bokeh.models.tools import *
 from bokeh.models.glyphs import ImageURL
 from read import *
 from boundingbox import *
+from more_itertools import unique_everseen
 
 # flask magic
 url_params = curdoc().session_context.request.arguments
@@ -17,6 +18,8 @@ url_params = curdoc().session_context.request.arguments
 ##### CHECK FF OF IK DIT GEBROKEN HEB ###
 
 stimuli_meta = read_metadata()
+stimuli_names = list(stimuli_meta.keys())
+
 
 ############
 ###Matrix###
@@ -26,6 +29,11 @@ user_list = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11',
             'p17', 'p18', 'p19', 'p20', 'p21', 'p22', 'p23', 'p24', 'p25', 'p26', 'p27', 'p28', 'p29', 'p30', 'p31',
             'p32', 'p33', 'p34', 'p35', 'p36', 'p37', 'p38', 'p39', 'p40']
 zeros = np.zeros(400)
+
+example_loaded_stimuli = stimuli_names.pop()
+print(example_loaded_stimuli)
+
+df = read_main_df()
 
 # setup empty ColumnDataSource
 source = ColumnDataSource(data=dict(
@@ -100,10 +108,12 @@ color_bar.xaxis.minor_tick_line_color = None
 # set up widgets lists
 cities = list(stimuli_names)
 colorSchemes = ['SteelBlue', 'Tomato', 'MediumSeaGreen', 'Inferno', 'Magma', 'Plasma', 'Viridis']
+ordering = ['default', 'seriationMDS', 'seriationMDS2', 'seriationMDS3', 'seriationMDS4','seriationMDS5', 'seriationMDS6', 'ward']
 
 # Set up widgets
 city_select = Select(title="City", options=cities)
 colorScheme_select = Select(title="Color Scheme", value="SteelBlue", options=colorSchemes)
+ordering_select = Select(title="Ordering", options=ordering)
 
 
 # Set up callbacks
@@ -181,6 +191,7 @@ def update_data(attrname, old, new):
        colormap = all_palettes[colorScheme][256]
        gradient = 1
 
+   adjacency =  scanpaths_dict(city, user_list, df)
    # retrieve similarity score from dictionary and add color
    for i in range(0, len(user_list)):
        for j in range(0, len(user_list)):
@@ -223,12 +234,35 @@ def update_data(attrname, old, new):
    )
 
    # update the x and y labels
-   p.x_range.factors = list(reversed(np.unique(xname)))
-   p.y_range.factors = list(np.unique(yname))
+   order = list(unique_everseen(xname))
+   p.x_range.factors = order
+   p.y_range.factors = list(reversed(order))
 
    # log to console
    print('Updated Plot')
 
+@track
+def reorder(attrname, old, new):
+    order = ordering_select.value
+
+    if order == "default":
+        new_order = list(unique_everseen(source.data["xname"]))
+    if order == "seriationMDS":
+        new_order = seriationMDS(source.data, 0)
+    if order == "seriationMDS2":
+        new_order = seriationMDS(source.data, 1)
+    if order == "seriationMDS3":
+        new_order = seriationMDS3(source.data, 0)
+    if order == "seriationMDS4":
+        new_order = seriationMDS3(source.data, 1)
+    if order == "seriationMDS5":
+        new_order = seriationMDS5(source.data, 0)
+    if order == "seriationMDS6":
+        new_order = seriationMDS5(source.data, 1)
+    if order == "ward":
+        new_order = sorting(source.data)
+    p.x_range.factors = list(new_order)
+    p.y_range.factors = list(reversed(new_order))
 
 #############
 ###output####
@@ -237,9 +271,10 @@ def update_data(attrname, old, new):
 # updates plot data on_change
 city_select.on_change('value', update_data)
 colorScheme_select.on_change('value', update_data)
+ordering_select.on_change('value', reorder)
 
 # Set up layouts and add to document
-inputs = widgetbox([city_select, colorScheme_select])
+inputs = widgetbox([city_select, colorScheme_select, ordering_select ])
 
 # Flask/Bokeh magic
 curdoc().add_root(row(inputs, color_bar, p, p4))
