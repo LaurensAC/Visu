@@ -264,13 +264,36 @@ def reorder(attrname, old, new):
     p.x_range.factors = list(new_order)
     p.y_range.factors = list(reversed(new_order))
 
+@track
+def update_colorscheme(attrname, old, new):
+    alpha = []
+    color = []
+    colorScheme = colorScheme_select.value
+    gradient = 0
+
+    if colorScheme not in ['Tomato', 'SteelBlue', 'MediumSeaGreen']:
+        colormap = all_palettes[colorScheme][256]
+        gradient = 1
+
+    for i in range(0, len(source.data["count"])-1):
+        value = source.data["count"][i]
+        if gradient == 1:
+            color.append(colormap[255 - int(round(255 * value))])
+            alpha.append(1.0)
+        else:
+            alpha.append(value)
+            color.append(colorScheme)
+
+    source.data["colors"] = color
+    source.data["alphas"] = alpha
+
 #############
 ###output####
 #############
 
 # updates plot data on_change
 city_select.on_change('value', update_data)
-colorScheme_select.on_change('value', update_data)
+colorScheme_select.on_change('value', update_colorscheme)
 ordering_select.on_change('value', reorder)
 
 # Set up layouts and add to document
