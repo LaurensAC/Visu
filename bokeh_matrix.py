@@ -49,7 +49,7 @@ source = ColumnDataSource(data=dict(
 
 # initiate plot
 p = figure(title="Bounding box",
-          x_axis_location="above", tools="hover,save,pan,wheel_zoom,reset,tap,box_select",
+          x_axis_location="above", tools="hover,save,wheel_zoom,reset,tap,box_select",
           x_range=list(reversed(user_list)), y_range=list(user_list))
 
 # set some plot parameters
@@ -275,7 +275,7 @@ def update_colorscheme(attrname, old, new):
         colormap = all_palettes[colorScheme][256]
         gradient = 1
 
-    for i in range(0, len(source.data["count"])-1):
+    for i in range(0, len(source.data["count"])):
         value = source.data["count"][i]
         if gradient == 1:
             color.append(colormap[255 - int(round(255 * value))])
