@@ -109,17 +109,17 @@ def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
     station_count = META[stim]['station_count']
     city = META[stim]['txt_name']
 
-    # New title
-    t = Title()
-    t.text = stim_select.value + '- ('+ str(station_count) + 'stations)'
-    matrix_plot.title = t
+    # Update title (object)
+    t = matrix_plot.title
+    t.text = stim_select.value + ' - (' + str(station_count) + ' stations)'
 
     # Retaining other settings
     color = color_select.value
+
     # TODO
     # metric = metric.select.value
 
-    image_cds.data = get_img(stim, [0], [0]).datasource
+    image_cds.data = get_img(stim, [0], [0]).data
 
     matrix_cds.data = get_matrix_cds(stim, USERS, DF, color, METRIC).data
 
@@ -134,10 +134,9 @@ def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
     plot_h = y_dim + kwargs['min_border_top'] + kwargs['min_border_bottom']
 
 
-
 def color_select_callback(attr, old, new):
     alpha = []
-    color = []
+    colors = []
     color_scheme = color_select.value
     gradient = 0
 
@@ -148,13 +147,13 @@ def color_select_callback(attr, old, new):
     for i in range(0, len(matrix_cds.data["count"])):
         value = matrix_cds.data["count"][i]
         if gradient == 1:
-            color.append(colormap[255 - int(round(255 * value))])
+            colors.append(colormap[255 - int(round(255 * value))])
             alpha.append(1.0)
         else:
             alpha.append(value)
-            color.append(color_scheme)
+            colors.append(color_scheme)
 
-    matrix_cds.data["colors"] = color
+    matrix_cds.data["colors"] = colors
     matrix_cds.data["alphas"] = alpha
 
 
