@@ -1,4 +1,6 @@
 import numpy as np
+import types
+
 from bokeh.models.widgets import Slider, Select, RadioGroup
 from bokeh.plotting import figure
 from bokeh.models import TextInput, ColumnDataSource, CustomJS, Rect, Title
@@ -10,6 +12,7 @@ from bokeh.io import curdoc
 from read import read_main_df, read_metadata
 from sources import get_filename, get_matrix_cds, get_img, get_stim_select_options
 from metrics import simple_bbox
+import orders
 
 FLASK_ARGS = curdoc().session_context.request.arguments
 
@@ -19,14 +22,22 @@ FLASK_ARGS = curdoc().session_context.request.arguments
 # 1 # 2 2 # 4 4 #
 #################
 
+
 # _.-*-._ Default settings _.-*-._
 
 META = read_metadata()  # Keys are names of stimuli files (stim.jpg)
 DF = read_main_df()
 USERS = list(DF.user.unique())
 
+# Ordering algorithms
+ORDERS = dict()
+for func in dir(orders):
+    if isinstance(orders.__dict__.get(func), types.FunctionType):
+        ORDERS[func] = orders.__dict__.get(func)
+
 STIM = '03_Bordeaux_S1.jpg'
 COLOR = 'Inferno'
+ORDER = 'seriationMDS'
 METRIC = simple_bbox
 
 # _.-*-._ Data sources _.-*-._ (sources.py)
@@ -45,7 +56,7 @@ image_cds = get_img(STIM, [0], [0])
 # _.-*-._ Widgets _.-*-._
 
 # Selecting stimulus, filter options through TextInput widget ti
-stim_select = Select(options=stim_select_cds.data['options'])
+stim_select = Select(options=stim_select_cds.data['options'], value=STIM)
 text_input = TextInput(placeholder='Enter filter', title='Stimulus',
                        callback=CustomJS(args=dict(ds=stim_select_cds, s=stim_select),
                                          code="s.options = ds.data['options'].filter(i => i.includes(cb_obj.value));"))
@@ -54,8 +65,12 @@ text_input = TextInput(placeholder='Enter filter', title='Stimulus',
 color_select = Select(title="Color Scheme", value=COLOR,
                       options=['SteelBlue', 'Tomato', 'MediumSeaGreen', 'Inferno', 'Magma', 'Plasma', 'Viridis'])
 
-# TODO metric_select, sorting_select, heatmap_tunes
-widgets = [text_input, stim_select, color_select]
+# Select ordering for matrix
+order_select = Select(title='Ordering', value=ORDER, options=list(
+    ORDERS.keys()))
+
+# TODO metric_select, heatmap_tunes
+widgets = [text_input, stim_select, color_select, order_select]
 
 
 # --- Plotting variables
@@ -133,9 +148,6 @@ def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
     plot_w = x_dim + kwargs['min_border_left'] + kwargs['min_border_right']
     plot_h = y_dim + kwargs['min_border_top'] + kwargs['min_border_bottom']
 
-    render = color_bar.select(name='color_bar')
-    render.nonselection_glyph = unselect_rectangle
-
 
 def color_select_callback(attr, old, new):
     alpha = []
@@ -159,10 +171,20 @@ def color_select_callback(attr, old, new):
     matrix_cds.data["colors"] = colors
     matrix_cds.data["alphas"] = alpha
 
-    render = color_bar.select(name='color_bar')
-    render.nonselection_glyph = unselect_rectangle
+
+def order_select_callback(attr, old, new):
+    function_name = order_select.value
+    function = ORDERS.get(function_name)
+
+    new_order = function(matrix_cds.data, 0)
+
+    matrix_plot.x_range.factors = list(new_order)
+    matrix_plot.y_range.factors = list(reversed(new_order))
 
 
+stim_select.on_change('value', stim_select_callback)
+color_select.on_change('value', color_select_callback)
+order_select.on_change('value', order_select_callback)
 
 # _.-*-._ Plots _.-*-._
 
@@ -235,11 +257,7 @@ image_plot.image_rgba(image='image', x=0, y=0, dw='width', dh='height',
                       source=image_cds)
 
 
-# _.-*-._ Callbacks _.-*-._
 
-
-stim_select.on_change('value', stim_select_callback)
-color_select.on_change('value', color_select_callback)
 
 sizing_mode = 'fixed'
 
