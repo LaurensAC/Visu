@@ -133,6 +133,9 @@ def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
     plot_w = x_dim + kwargs['min_border_left'] + kwargs['min_border_right']
     plot_h = y_dim + kwargs['min_border_top'] + kwargs['min_border_bottom']
 
+    render = color_bar.select(name='color_bar')
+    render.nonselection_glyph = unselect_rectangle
+
 
 def color_select_callback(attr, old, new):
     alpha = []
@@ -155,6 +158,9 @@ def color_select_callback(attr, old, new):
 
     matrix_cds.data["colors"] = colors
     matrix_cds.data["alphas"] = alpha
+
+    render = color_bar.select(name='color_bar')
+    render.nonselection_glyph = unselect_rectangle
 
 
 
@@ -191,7 +197,8 @@ matrix_plot.axis.major_label_text_font_size = '10pt'
 matrix_plot.axis.major_label_standoff = 0
 matrix_plot.axis.major_label_orientation = np.pi / 3
 matrix_plot.rect('xname', 'yname', 0.9, 0.9, source=matrix_cds,
-                 fill_color='colors', alpha='alphas')
+                 color='colors', alpha='alphas', line_color=None,
+                 hover_line_color='black', hover_color='black')
 
 matrix_plot.select_one(HoverTool).tooltips = [
     ('names', '@yname, @xname'),
@@ -215,8 +222,12 @@ render.nonselection_glyph = unselect_rectangle
 crosshair = color_bar.select(type=CrosshairTool)
 crosshair.dimensions = 'width'
 
+color_bar.xgrid.grid_line_color = None
+color_bar.ygrid.grid_line_color = None
 color_bar.yaxis.axis_label_text_font_size = '12pt'
 color_bar.xaxis.major_label_text_font_size = '0pt'
+color_bar.xaxis.major_tick_line_color = None
+color_bar.xaxis.minor_tick_line_color = None
 
 image_plot = figure(plot_width=800, plot_height=800)
 
