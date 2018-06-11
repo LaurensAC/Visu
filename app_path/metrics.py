@@ -1,8 +1,6 @@
-from utils import strack
 import numpy as np
 
 
-@strack
 def simple_bbox(stim, users, df):
     """
     A metric
@@ -24,7 +22,7 @@ def simple_bbox(stim, users, df):
                                 'x_min': temp['MappedFixationPointX'].min(),
                                 'y_min': temp['MappedFixationPointY'].min(), }
 
-    counter = 0 #
+    counter = 0
     for i in users:
         for j in users[counter:len(users)]:
             if np.isnan(bounding[stim][i]['x_max']) or np.isnan(bounding[stim][j]['x_max']):

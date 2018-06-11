@@ -2,6 +2,12 @@ import numpy as np
 import math
 import scipy.cluster.hierarchy as sch
 
+# TODO Laurens, Neil:
+# Wats met 'column'? (kan het zonder?) (non-deterministisch?)
+# >>> zou chill zijn als alle functies dezelfde input krijgen e.g. de matrix
+
+# Geef de functies namen waar de gebruiker ('client') wat aan heeft
+
 
 #uses squared distance matrix + double centering + SVD
 def seriationMDS(matrix, column):

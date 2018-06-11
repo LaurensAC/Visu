@@ -1,5 +1,4 @@
 import numpy as np
-from functools import lru_cache, partial
 from PIL import Image
 from bokeh.models import Range1d, ColumnDataSource as Cds
 from bokeh.palettes import all_palettes
@@ -7,11 +6,10 @@ from bokeh.palettes import all_palettes
 from utils import find_path, track, strack
 
 # Use this module to construct new data at runtime ('on the go')
-# Last recently used calls are cached
 
 
 @strack
-def get_img(stimulus, mapped_fixations_x, mapped_fixations_y):
+def get_img(stimulus):
     """
     Cds for fourth component given a :param: stimulus (file name)
     """
@@ -22,17 +20,20 @@ def get_img(stimulus, mapped_fixations_x, mapped_fixations_y):
     # Its array representation, 8-bit
     img = np.empty((ydim, xdim), dtype=np.uint32)
     view = img.view(dtype=np.uint8).reshape((ydim, xdim, 4))
-    # Copy the RGBA image into view, flipping it so it comes right-side up
+    # Copy the RGBA image into view, flipping it upside down
     # with a lower-left origin
     view[:, :, :] = np.flipud(np.asarray(raw_img))
 
     return Cds({'image': [img],
                 'width': [xdim],
                 'height': [ydim],
-                'MappedFixationPointX': mapped_fixations_x,
-                'MappedFixationPointY': mapped_fixations_y
                 })
 
+@strack
+def get_fixation_points(x, y):
+    return Cds({'MappedFixationPointX': x,
+                'MappedFixationPointY': y
+                })
 
 @strack
 def get_stim_select_options(meta):

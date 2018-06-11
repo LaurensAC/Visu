@@ -27,8 +27,12 @@ def read_main_df():
     return df
 
 
-@strack
 def read_metadata():
     with open(find_path('stimuli_meta.json'), 'r') as f:
         stimuli_meta = json.load(f)
     return stimuli_meta
+
+
+def flippit(row, meta):
+    return - row['MappedFixationPointY'] + meta[row['StimuliName']]['y_dim']
+

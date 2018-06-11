@@ -1,3 +1,0 @@
-Color bar does not refresh when matrix is refreshed (by clicking the refresh
-button in its toolbar)
-
