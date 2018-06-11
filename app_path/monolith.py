@@ -4,6 +4,7 @@ from bokeh.plotting import figure
 from bokeh.models import TextInput, ColumnDataSource, CustomJS, Rect, Title
 from bokeh.models.tools import HoverTool, CrosshairTool
 from bokeh.layouts import row, column, widgetbox
+from bokeh.palettes import all_palettes
 from bokeh.io import curdoc
 
 from read import read_main_df, read_metadata
@@ -108,15 +109,17 @@ def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
     station_count = META[stim]['station_count']
     city = META[stim]['txt_name']
 
-    title = Title(stim_select.value + '--')
-    matrix_plot.title = title
+    # New title
+    t = Title()
+    t.text = stim_select.value + '- ('+ str(station_count) + 'stations)'
+    matrix_plot.title = t
 
     # Retaining other settings
     color = color_select.value
     # TODO
     # metric = metric.select.value
 
-    image_cds.data = get_img(stim, [0], [0]).data
+    image_cds.data = get_img(stim, [0], [0]).datasource
 
     matrix_cds.data = get_matrix_cds(stim, USERS, DF, color, METRIC).data
 
@@ -133,7 +136,27 @@ def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
 
 
 def color_select_callback(attr, old, new):
-    pass
+    alpha = []
+    color = []
+    color_scheme = color_select.value
+    gradient = 0
+
+    if color_scheme not in ['Tomato', 'SteelBlue', 'MediumSeaGreen']:
+        colormap = all_palettes[color_scheme][256]
+        gradient = 1
+
+    for i in range(0, len(matrix_cds.data["count"])):
+        value = matrix_cds.data["count"][i]
+        if gradient == 1:
+            color.append(colormap[255 - int(round(255 * value))])
+            alpha.append(1.0)
+        else:
+            alpha.append(value)
+            color.append(color_scheme)
+
+    matrix_cds.data["colors"] = color
+    matrix_cds.data["alphas"] = alpha
+
 
 
 # _.-*-._ Plots _.-*-._
@@ -206,6 +229,7 @@ image_plot.image_rgba(image='image', x=0, y=0, dw='width', dh='height',
 
 
 stim_select.on_change('value', stim_select_callback)
+color_select.on_change('value', color_select_callback)
 
 sizing_mode = 'fixed'
 
