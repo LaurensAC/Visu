@@ -8,8 +8,6 @@ from chardet.universaldetector import UniversalDetector
 from functools import wraps
 from time import time
 import numpy as np
-import scipy
-import pylab
 import scipy.cluster.hierarchy as sch
 
 
@@ -20,8 +18,21 @@ def track(f):
         ts = time()
         result = f(*args, **kwargs)
         te = time()
-        print('function:{} \n\t args:[{}] \n\t took {} seconds'
+        print('function: {} \n\t args:[{}] \n\t took {} seconds'
               .format(f.__name__, args, round(te-ts, 4)))
+        return result
+    return wrap
+
+
+# The above without printing input arguments
+def strack(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        ts = time()
+        result = f(*args, **kwargs)
+        te = time()
+        print('function: {} \n\t took {} seconds'
+              .format(f.__name__, round(te-ts, 4)))
         return result
     return wrap
 
@@ -142,6 +153,7 @@ def seriationMDS(matrix, column):
     U, names = zip(*sorted(zip(U, names)))
     U, names = (list(t) for t in zip(*sorted(zip(U, names))))
     return names
+
 
 #only uses SVD
 def seriationMDS3(matrix, column):

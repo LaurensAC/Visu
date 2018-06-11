@@ -1,13 +1,20 @@
-from PIL import Image
 import numpy as np
-from bokeh.models import ColumnDataSource
+from functools import lru_cache, partial
+from PIL import Image
+from bokeh.models import Range1d, ColumnDataSource as Cds
+from bokeh.palettes import all_palettes
 
-from utils import find_path, track
+from utils import find_path, track, strack
 
-# Use this module to construct ColumnDataSources
+# Use this module to construct new data at runtime ('on the go')
+# Last recently used calls are cached
 
 
-def get_img(stimulus):
+@strack
+def get_img(stimulus, mapped_fixations_x, mapped_fixations_y):
+    """
+    Cds for fourth component given a :param: stimulus (file name)
+    """
     # Loading with PIL
     raw_img = Image.open(find_path(stimulus)).convert('RGBA')
     # Its dimensions
@@ -19,17 +26,27 @@ def get_img(stimulus):
     # with a lower-left origin
     view[:, :, :] = np.flipud(np.asarray(raw_img))
 
-    return ColumnDataSource({'image': [img], 'xw': [xdim], 'yw': [ydim]})
+    return Cds({'image': [img],
+                'width': [xdim],
+                'height': [ydim],
+                'MappedFixationPointX': mapped_fixations_x,
+                'MappedFixationPointY': mapped_fixations_y
+                })
 
 
-def get_city_select_options(meta):
+@strack
+def get_stim_select_options(meta):
+    """
+    Cds for first component given the :param: metadata (a loaded meta.json)
+    """
     options = list()
     for filename, values in meta.items():
         options.append(values['widget_name'])
-    return ColumnDataSource(data=dict(options=options))
+    return Cds(data=dict(options=options))
 
 
 # Get a filename given a selected option
+@strack
 def get_filename(meta, option):
     for f, values in meta.items():
         if values['widget_name'] == option:
@@ -37,46 +54,68 @@ def get_filename(meta, option):
     return NotImplementedError
 
 
-@track
-def scanpaths_dict(stim, users, df):
+@strack
+def get_matrix_cds(stim, users, df, color_scheme, metric):
 
-    # dictionary to store x/y max/min values
-    bounding = {}
-    # dictionary to store similarity scores
-    adjacency = {}
 
-    bounding[stim] = {}
-    adjacency[stim] = {}
+    # Generate the new adjacency matrix
+    alpha = []
+    color = []
+    xname = []
+    yname = []
+    count = []
+    MappedFixationPointY = []
+    MappedFixationPointX = []
 
-    for user in users:
-        adjacency[stim][user] = {}
-        temp = df[(df['StimuliName'] == stim) & (df[
-                                                     'user'] == user)]  # create small temporary dataset containing the entire scanpath of an user
-        bounding[stim][user] = {'x_max': temp['MappedFixationPointX'].max(),
-                                'y_max': temp['MappedFixationPointY'].max(),
-                                'x_min': temp['MappedFixationPointX'].min(),
-                                'y_min': temp['MappedFixationPointY'].min(), }
+    temp = df[(df['StimuliName'] == stim)]
 
-    counter = 0 #
-    for i in users:
-        for j in users[counter:len(users)]:
-            if np.isnan(bounding[stim][i]['x_max']) or np.isnan(bounding[stim][j]['x_max']):
-                continue
-            A = abs(bounding[stim][i]['x_max'] - bounding[stim][i]['x_min']) *\
-                abs(bounding[stim][i]['y_max'] - bounding[stim][i]['y_min'])
-            B = abs(bounding[stim][j]['x_max'] - bounding[stim][j]['x_min']) *\
-                abs(bounding[stim][j]['y_max'] - bounding[stim][j]['y_min'])
+    gradient = 0
 
-            C = abs(max(bounding[stim][i]['x_min'], bounding[stim][j]['x_min']) -\
-                    min(bounding[stim][i]['x_max'], bounding[stim][j]['x_max'])) *\
-                abs(max(bounding[stim][i]['y_min'], bounding[stim][j]['y_min']) - \
-                    min(bounding[stim][i]['y_max'], bounding[stim][j]['y_max']))
+    if color_scheme not in ['Tomato', 'SteelBlue', 'MediumSeaGreen']:
+        colormap = all_palettes[color_scheme][256]
+        gradient = 1
 
-            #fill in the matrix
-            adjacency[stim][i][j] = C / (A + B - C)
-            adjacency[stim][j][i] = C / (A + B - C)
-        counter += 1
+    adjacency = metric(stim, users, df)
+    # retrieve similarity score from dictionary and add color
+    for i in range(0, len(users)):
+        for j in range(0, len(users)):
+            value = adjacency[stim][users[i]].get(users[j],
+                                                      'Key not present')
+            assert value <= 1
+            assert value >= 0
 
-    print(adjacency)
-    return adjacency
+            xname.append(users[i])
+            yname.append(users[j])
+            count.append(value)
+
+            MappedFixationPointX.append(
+                temp[(temp['user'] == users[i]) | (
+                            temp['user'] == users[j])][
+                    'MappedFixationPointX'])
+            MappedFixationPointY.append(
+                temp[(temp['user'] == users[i]) | (
+                            temp['user'] == users[j])][
+                    'MappedFixationPointY'])
+
+            if gradient == 1:
+                color.append(colormap[255 - int(round(255 * value))])
+                alpha.append(1.0)
+            else:
+                alpha.append(value)
+                color.append(color_scheme)
+
+    zeros = np.zeros(pow(len(np.unique(xname)), 2))
+
+    # swap out the old data for the new data
+    return Cds(data=dict(
+        xname=xname,
+        yname=yname,
+        alphas=alpha,
+        colors=color,
+        count=count,
+        zeros=zeros,
+        MappedFixationPointY=MappedFixationPointY,
+        MappedFixationPointX=MappedFixationPointX
+    ))
+
 

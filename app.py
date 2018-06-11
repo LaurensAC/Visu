@@ -32,9 +32,9 @@ def serve(script, port):
         exec_path = find_path(script + '.py')
         # Serve script on specified port
         cmd = "bokeh serve {} --port {} ".format(exec_path, port)
-
         # Whitelist cross site connections e.g. this flask application
         cmd += "--allow-websocket-origin {} ".format(SOCKET)
+
         cmd += "--log-level info "
         # Log memory usage, frequency in ms
         cmd += "--mem-log-frequency=30000"
