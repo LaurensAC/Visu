@@ -93,14 +93,10 @@ def get_matrix_cds(stim, users, df, color_scheme, metric):
             yname.append(users[j])
             count.append(value)
 
-            MappedFixationPointX.append(
-                temp[(temp['user'] == users[i]) | (
-                            temp['user'] == users[j])][
-                    'MappedFixationPointX'])
-            MappedFixationPointY.append(
-                temp[(temp['user'] == users[i]) | (
-                            temp['user'] == users[j])][
-                    'MappedFixationPointY'])
+            MappedFixationPointX.append([temp[temp['user'] == users[i]]['MappedFixationPointX'],
+                                        temp[temp['user'] == users[j]]['MappedFixationPointX']])
+            MappedFixationPointY.append([temp[temp['user'] == users[i]]['MappedFixationPointY'],
+                                        temp[temp['user'] == users[j]]['MappedFixationPointY']])
 
             if gradient == 1:
                 color.append(colormap[255 - int(round(255 * value))])

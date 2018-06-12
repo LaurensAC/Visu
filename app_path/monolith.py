@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from bokeh.models.widgets import Slider, Select
 from bokeh.plotting import figure
 from bokeh.models import TextInput, CustomJS, Rect
@@ -62,7 +63,6 @@ image_cds = get_img(STIM)
 fixation_cds = get_fixation_points(matrix_cds.data['MappedFixationPointX'],
                                    matrix_cds.data['MappedFixationPointY'])
 
-
 # _.-*-._ Widgets _.-*-._
 
 # Selecting stimulus, filter options through TextInput widget ti
@@ -84,7 +84,6 @@ metric_select = Select(title='Metric', value=METRIC, options=list(METRICS.keys()
 # Widgets will show on the dashboard in this order
 widgets = [text_input, stim_select, color_select, order_select, metric_select]
 
-
 # --- Plotting variables
 plot_kwargs = dict()
 
@@ -104,33 +103,37 @@ plot_kwargs.update({'tools': 'crosshair, pan, reset, save, wheel_zoom'})
 # _.-*-._ Callbacks _.-*-._
 
 # Note some variable names are used in the JavaScript string
-# TODO Laurens: Mapping of selection tool <-> indices is a bit off (edge cases)
 matrix_cds.callback = CustomJS(args=dict(fixation_cds=fixation_cds), code="""
        var inds = cb_obj.selected['1d'].indices;
        var d1 = cb_obj.data;
        var d2 = fixation_cds.data;
-       d2['MappedFixationPointX'] = [[]]
+       
+       d2['MappedFixationPointX'] = [[]]        
        d2['MappedFixationPointY'] = [[]]
        for (var i = 0; i < inds.length; i++) {
-           d2['MappedFixationPointX'][[i]] = d1['MappedFixationPointX'][inds[i]]
-           d2['MappedFixationPointY'][[i]] = d1['MappedFixationPointY'][inds[i]]
+           d2['MappedFixationPointX'][i] = d1['MappedFixationPointX'][inds[i]]
+           d2['MappedFixationPointY'][i] = d1['MappedFixationPointY'][inds[i]]
        }
-       d2['MappedFixationPointX'] = d2['MappedFixationPointX'].map(JSON.stringify).reverse().filter(function (e, i, a) {
-           return a.indexOf(e, i+1) === -1;
-           }).reverse().map(JSON.parse) //
-       d2['MappedFixationPointY'] = d2['MappedFixationPointY'].map(JSON.stringify).reverse().filter(function (e, i, a) {
-           return a.indexOf(e, i+1) === -1;
-           }).reverse().map(JSON.parse) //
-
        d2['MappedFixationPointX'] = [].concat.apply([], d2['MappedFixationPointX']);
        d2['MappedFixationPointY'] = [].concat.apply([], d2['MappedFixationPointY']);
+
+       d2['MappedFixationPointX'] = d2['MappedFixationPointX'].map(JSON.stringify).reverse().filter(function (e, i, a) {
+           return a.indexOf(e, i+1) === -1;
+           }).reverse().map(JSON.parse) 
+       d2['MappedFixationPointY'] = d2['MappedFixationPointY'].map(JSON.stringify).reverse().filter(function (e, i, a) {
+           return a.indexOf(e, i+1) === -1;
+           }).reverse().map(JSON.parse) 
+        
+       console.log(d2['MappedFixationPointX'])
+       console.log(d2['MappedFixationPointY'])
+       
+       fixation_cds.data = d2
        fixation_cds.change.emit();
     """)
 
 
 # --- called by stimulus_select
 def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
-
     # Values from widget are not exact stimuli names
     stim = get_filename(META, stim_select.value)
 
@@ -171,6 +174,7 @@ def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
     fixation_cds.data = get_fixation_points(X, Y).data
 
 
+
 def color_select_callback(attr, old, new):
     alpha = []
     colors = []
@@ -197,7 +201,6 @@ def color_select_callback(attr, old, new):
 def order_select_callback(attr, old, new):
     function_name = order_select.value
     f = ORDERS.get(function_name)
-
     new_order = f(matrix_cds.data)
 
     matrix_plot.x_range.factors = list(new_order)
@@ -214,11 +217,20 @@ def metric_select_callback(attr, old, new):
     matrix_cds.data = get_matrix_cds(stim, USERS, DF, color, f).data
 
 
+def image_plot_callback(attr, old, new):
+    x = fixation_cds.data['MappedFixationPointX']
+    y = fixation_cds.data['MappedFixationPointY']
+    print(len(fixation_cds.data['MappedFixationPointX']))
+    #for i in range(0, len(fixation_cds.data['MappedFixationPointX'])):
+        #image_plot.circle(x[i], y[i], size=15, fill_color="orange", alpha=0.5)
+        #image_plot.line(x[i], y[i], line_color="navy", alpha=0.5)
+
+
 stim_select.on_change('value', stim_select_callback)
 color_select.on_change('value', color_select_callback)
 order_select.on_change('value', order_select_callback)
 metric_select.on_change('value', metric_select_callback)
-
+matrix_cds.on_change('selected', image_plot_callback)
 
 # _.-*-._ Plots _.-*-._
 
@@ -260,18 +272,15 @@ matrix_plot.select_one(HoverTool).tooltips = [
     ('names', '@yname, @xname'),
     ('Similarity score', '@count')]
 
-
-
-
 # Color bar
 color_bar = figure(
-   tools="box_select, crosshair", width=80, height=600, title=None,
-   y_range=(0, 1),
-   y_axis_label="Similarity score", toolbar_location=None)
+    tools="box_select, crosshair", width=80, height=600, title=None,
+    y_range=(0, 1),
+    y_axis_label="Similarity score", toolbar_location=None)
 
 color_bar.rect(
-   'zeros', 'count', 0.5, 0.0005, name='color_bar',
-   source=matrix_cds, color='colors', alpha='alphas')
+    'zeros', 'count', 0.5, 0.0005, name='color_bar',
+    source=matrix_cds, color='colors', alpha='alphas')
 
 unselect_rectangle = Rect(line_alpha=0, fill_alpha=0)
 render = color_bar.select(name='color_bar')
@@ -291,12 +300,6 @@ image_plot = figure(plot_width=800, plot_height=800)
 
 image_plot.image_rgba(image='image', x=0, y=0, dw='width', dh='height',
                       source=image_cds)
-
-image_plot.circle('MappedFixationPointX', 'MappedFixationPointY', size=15,
-          source=fixation_cds, fill_color="orange", alpha=0.5)
-image_plot.line('MappedFixationPointX', 'MappedFixationPointY',
-           line_color="navy", source=fixation_cds, alpha=0.5)
-
 sizing_mode = 'stretch_both'
 
 inputs = widgetbox(widgets, sizing_mode=sizing_mode)
