@@ -45,8 +45,7 @@ def simple_bbox(stim, users, df):
 
     return adjacency
 
-
-
+"""
 def jaccard_similarity(stim, users, df):
 
     jaccard = {}  # ?
@@ -103,3 +102,5 @@ def jaccard_similarity(stim, users, df):
 
     print(adjacency)
     return adjacency
+
+"""
