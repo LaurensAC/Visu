@@ -28,6 +28,7 @@ stimuli_names = list(stimuli_meta.keys())
 user_list = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14', 'p15', 'p16',
             'p17', 'p18', 'p19', 'p20', 'p21', 'p22', 'p23', 'p24', 'p25', 'p26', 'p27', 'p28', 'p29', 'p30', 'p31',
             'p32', 'p33', 'p34', 'p35', 'p36', 'p37', 'p38', 'p39', 'p40']
+
 zeros = np.zeros(400)
 
 example_loaded_stimuli = stimuli_names.pop()
@@ -160,7 +161,7 @@ source.callback = CustomJS(args=dict(source4=source4), code="""
        d2['MappedFixationPointX'] = [].concat.apply([], d2['MappedFixationPointX']);
        d2['MappedFixationPointY'] = [].concat.apply([], d2['MappedFixationPointY']);
        source4.change.emit();
-   """)
+    """)
 
 
 #################
@@ -191,7 +192,7 @@ def update_data(attrname, old, new):
        colormap = all_palettes[colorScheme][256]
        gradient = 1
 
-   adjacency =  scanpaths_dict(city, user_list, df)
+   adjacency = scanpaths_dict(city, user_list, df)
    # retrieve similarity score from dictionary and add color
    for i in range(0, len(user_list)):
        for j in range(0, len(user_list)):
@@ -233,7 +234,7 @@ def update_data(attrname, old, new):
        MappedFixationPointX=[item for sublist in MappedFixationPointX for item in sublist]
    )
 
-   # update the x and y labels
+# update the x and y labels
    order = list(unique_everseen(xname))
    p.x_range.factors = order
    p.y_range.factors = list(reversed(order))

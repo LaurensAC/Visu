@@ -77,11 +77,15 @@ def get_matrix_cds(stim, users, df, color_scheme, metric):
         gradient = 1
 
     adjacency = metric(stim, users, df)
+
     # retrieve similarity score from dictionary and add color
     for i in range(0, len(users)):
         for j in range(0, len(users)):
             value = adjacency[stim][users[i]].get(users[j],
                                                       'Key not present')
+            if isinstance(value, str):
+                continue
+
             assert value <= 1
             assert value >= 0
 

@@ -6,7 +6,7 @@ from bokeh.models.tools import HoverTool, CrosshairTool
 from bokeh.layouts import row, column, widgetbox
 from bokeh.palettes import all_palettes
 from bokeh.io import curdoc
-
+from more_itertools import unique_everseen
 from read import read_main_df, read_metadata, flippit
 from utils import strack, get_functions_dict
 
@@ -24,6 +24,7 @@ FLASK_ARGS = curdoc().session_context.request.arguments
 # 1 # 2 2 # 4 4 #
 #################
 
+PRESENTING = True
 
 # _.-*-._ Default settings _.-*-._
 
@@ -31,7 +32,7 @@ META = read_metadata()  # Keys are names of stimuli files (stim.jpg)
 DF = read_main_df()
 # Flipped upside down
 DF['MappedFixationPointY'] = DF.apply(flippit, args=(META,), axis=1)
-USERS = list(DF.user.unique())[:10]  # TEST/DEV WITH 10 USERS, SP33D
+USERS = list(DF.user.unique())
 # Ordering algorithms
 ORDERS = get_functions_dict(orders)
 # Similarity algorithms
@@ -41,6 +42,9 @@ STIM = '03_Bordeaux_S1.jpg'
 COLOR = 'Inferno'
 ORDER = 'seriationMDS'
 METRIC = 'simple_bbox'
+
+if not PRESENTING:
+    USERS = USERS[:10]
 
 # _.-*-._ Data sources _.-*-._ (sources.py)
 
@@ -131,6 +135,7 @@ def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
     stim = get_filename(META, stim_select.value)
 
     image_cds.data = get_img(stim).data
+    print('got_here')
 
     x_dim = int(META[stim]['x_dim'])
     y_dim = int(META[stim]['y_dim'])
@@ -145,7 +150,13 @@ def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
     color = color_select.value
     metric = METRICS.get(metric_select.value)
     matrix_cds.data = get_matrix_cds(stim, USERS, DF, color, metric).data
-    print('got_here')
+
+    # Yields unique 'xname's, preserving order
+    if PRESENTING:
+        order = list(unique_everseen(matrix_cds.data['xname']))
+        matrix_plot.x_range.factors = order
+        matrix_plot.y_range.factors = list(reversed(order))
+
     image_plot.x_range.start = 0
     image_plot.y_range.start = 0
     image_plot.x_range.end = x_dim
@@ -240,7 +251,7 @@ matrix_plot.axis.axis_line_color = None
 matrix_plot.axis.major_tick_line_color = None
 matrix_plot.axis.major_label_text_font_size = '10pt'
 matrix_plot.axis.major_label_standoff = 0
-matrix_plot.axis.major_label_orientation = np.pi / 3
+matrix_plot.axis.major_label_orientation = np.pi / 4
 matrix_plot.rect('xname', 'yname', 0.9, 0.9, source=matrix_cds,
                  color='colors', alpha='alphas', line_color=None,
                  hover_line_color='black', hover_color='black')

@@ -2,9 +2,13 @@ import subprocess
 import re
 import os
 import signal
+import sys
+sys.path.insert(0, './app_path')
 from flask import Flask, render_template, Response
 from bokeh.embed import server_document
 from utils import find_path
+
+# FOR DEVELOPMENT PURPOSES, TESTED ON UBUNTU 16.04
 
 # Running on 127.0.0.1:5000 by default
 SOCKET = "127.0.0.1:5000"
@@ -65,7 +69,6 @@ def serve(script, port):
 # Grabs and embeds
 @app.route("/plots/<string:script>")
 def hello(script):
-    # TODO Route default to port 5006
     bokeh_file = server_document("http://localhost:{}/{}"
                                  .format(SERVING[script]['port'], script),
                                  # Pass around (global) params
@@ -73,8 +76,6 @@ def hello(script):
 
     return render_template('dashboard.html', bokehScript=bokeh_file,
                            title=script)
-
-
 
 
 if __name__ == "__main__":

@@ -2,9 +2,6 @@ import numpy as np
 import math
 import scipy.cluster.hierarchy as sch
 
-# TODO Laurens, Neil:
-# Geef de functies namen waar de gebruiker ('client') wat aan heeft
-
 
 #uses squared distance matrix + double centering + SVD
 def seriationMDS(matrix):
@@ -120,7 +117,7 @@ def distanceSVDcolumn2(matrix):
     return names
 
 #Neil zijn shit
-def sorting(d):
+def complete_dendogram(d):
     lengte = len(d["count"])
     wortellengte = int(math.sqrt(lengte))
 

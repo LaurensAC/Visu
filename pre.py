@@ -93,6 +93,7 @@ def compute_metadata():
 
     return stimuli_meta
 
+
 # Computes and writes metadata to your disk if you do not yet have it
 if not (find_path('stimuli_meta.json') and find_path('up.csv')):
     stimuli_meta = compute_metadata()
@@ -108,7 +109,6 @@ else:  # Read from disk otherwise
 def compareResolution(x, y, stim):
     if x > stimuli_meta.get(stim).get('x_dim') or x < 0 \
             or y > stimuli_meta.get(stim).get('y_dim') or y < 0:
-        print
         return True
     return False
 
