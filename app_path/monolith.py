@@ -10,7 +10,7 @@ from bokeh.io import curdoc
 from more_itertools import unique_everseen
 from read import read_main_df, read_metadata, flippit
 from utils import strack, get_functions_dict
-
+from sklearn import preprocessing
 from sources import (get_filename, get_matrix_cds, get_img,
                      get_stim_select_options, get_fixation_points)
 
@@ -43,6 +43,9 @@ STIM = '03_Bordeaux_S1.jpg'
 COLOR = 'Inferno'
 ORDER = 'seriationMDS'
 METRIC = 'simple_bbox'
+GAZE_COLORS = ['#e6194b', '#3cb44b', '#ffe119', '#0082c8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#d2f53c',
+               '#fabebe', '#008080', '#e6beff', '#aa6e28', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1',
+               '#000080', '#808080', '#000000', '#71e441']
 
 if not PRESENTING:
     USERS = USERS[:10]
@@ -61,7 +64,9 @@ matrix_cds = get_matrix_cds(STIM, USERS, DF, COLOR, METRICS[METRIC])
 image_cds = get_img(STIM)
 
 fixation_cds = get_fixation_points(matrix_cds.data['MappedFixationPointX'],
-                                   matrix_cds.data['MappedFixationPointY'])
+                                   matrix_cds.data['MappedFixationPointY'],
+                                   matrix_cds.data['FixationDuration'])
+
 
 # _.-*-._ Widgets _.-*-._
 
@@ -110,22 +115,31 @@ matrix_cds.callback = CustomJS(args=dict(fixation_cds=fixation_cds), code="""
        
        d2['MappedFixationPointX'] = [[]]        
        d2['MappedFixationPointY'] = [[]]
+       d2['FixationDuration'] = [[]]
+       
        for (var i = 0; i < inds.length; i++) {
            d2['MappedFixationPointX'][i] = d1['MappedFixationPointX'][inds[i]]
            d2['MappedFixationPointY'][i] = d1['MappedFixationPointY'][inds[i]]
+           d2['FixationDuration'][i] = d1['FixationDuration'][inds[i]]
        }
        d2['MappedFixationPointX'] = [].concat.apply([], d2['MappedFixationPointX']);
        d2['MappedFixationPointY'] = [].concat.apply([], d2['MappedFixationPointY']);
+       d2['FixationDuration'] = [].concat.apply([], d2['FixationDuration']);
 
        d2['MappedFixationPointX'] = d2['MappedFixationPointX'].map(JSON.stringify).reverse().filter(function (e, i, a) {
            return a.indexOf(e, i+1) === -1;
            }).reverse().map(JSON.parse) 
        d2['MappedFixationPointY'] = d2['MappedFixationPointY'].map(JSON.stringify).reverse().filter(function (e, i, a) {
            return a.indexOf(e, i+1) === -1;
-           }).reverse().map(JSON.parse) 
+           }).reverse().map(JSON.parse)
+        
+       d2['FixationDuration'] = d2['FixationDuration'].map(JSON.stringify).reverse().filter(function (e, i, a) {
+           return a.indexOf(e, i+1) === -1;
+           }).reverse().map(JSON.parse)  
         
        console.log(d2['MappedFixationPointX'])
        console.log(d2['MappedFixationPointY'])
+       console.log(d2[' FixationDuration'])
        
        fixation_cds.data = d2
        fixation_cds.change.emit();
@@ -170,8 +184,9 @@ def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
 
     X = [item for sublist in matrix_cds.data['MappedFixationPointX'] for item in sublist]
     Y = [item for sublist in matrix_cds.data['MappedFixationPointY'] for item in sublist]
+    duration = [item for sublist in matrix_cds.data['FixationDuration'] for item in sublist]
 
-    fixation_cds.data = get_fixation_points(X, Y).data
+    fixation_cds.data = get_fixation_points(X, Y, duration).data
 
 
 
@@ -216,14 +231,17 @@ def metric_select_callback(attr, old, new):
 
     matrix_cds.data = get_matrix_cds(stim, USERS, DF, color, f).data
 
-
 def image_plot_callback(attr, old, new):
+    
     x = fixation_cds.data['MappedFixationPointX']
     y = fixation_cds.data['MappedFixationPointY']
+    duration = fixation_cds.data['FixationDuration']
+
     print(len(fixation_cds.data['MappedFixationPointX']))
-    #for i in range(0, len(fixation_cds.data['MappedFixationPointX'])):
-        #image_plot.circle(x[i], y[i], size=15, fill_color="orange", alpha=0.5)
-        #image_plot.line(x[i], y[i], line_color="navy", alpha=0.5)
+    for i in range(0, len(fixation_cds.data['MappedFixationPointX'])):
+        size_scaled = (np.array(duration[i])/float(max(duration[i]))) * 30
+        image_plot.circle(x[i], y[i], size=size_scaled, fill_color=GAZE_COLORS[i], alpha=0.75)
+        image_plot.line(x[i], y[i], line_color=GAZE_COLORS[i], alpha=0.75)
 
 
 stim_select.on_change('value', stim_select_callback)

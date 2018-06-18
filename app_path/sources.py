@@ -30,9 +30,10 @@ def get_img(stimulus):
                 })
 
 @strack
-def get_fixation_points(x, y):
+def get_fixation_points(x, y, duration):
     return Cds({'MappedFixationPointX': x,
-                'MappedFixationPointY': y
+                'MappedFixationPointY': y,
+                'FixationDuration': duration
                 })
 
 @strack
@@ -67,6 +68,7 @@ def get_matrix_cds(stim, users, df, color_scheme, metric):
     count = []
     MappedFixationPointY = []
     MappedFixationPointX = []
+    duration = []
 
     temp = df[(df['StimuliName'] == stim)]
 
@@ -98,6 +100,9 @@ def get_matrix_cds(stim, users, df, color_scheme, metric):
             MappedFixationPointY.append([temp[temp['user'] == users[i]]['MappedFixationPointY'],
                                         temp[temp['user'] == users[j]]['MappedFixationPointY']])
 
+            duration.append([temp[temp['user'] == users[i]]['FixationDuration'],
+                                         temp[temp['user'] == users[j]]['FixationDuration']])
+
             if gradient == 1:
                 color.append(colormap[255 - int(round(255 * value))])
                 alpha.append(1.0)
@@ -116,7 +121,8 @@ def get_matrix_cds(stim, users, df, color_scheme, metric):
         count=count,
         zeros=zeros,
         MappedFixationPointY=MappedFixationPointY,
-        MappedFixationPointX=MappedFixationPointX
+        MappedFixationPointX=MappedFixationPointX,
+        FixationDuration=duration
     ))
 
 
