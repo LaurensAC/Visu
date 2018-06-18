@@ -43,6 +43,9 @@ STIM = '03_Bordeaux_S1.jpg'
 COLOR = 'Inferno'
 ORDER = 'seriationMDS'
 METRIC = 'simple_bbox'
+GAZE_COLORS = ['#e6194b', '#3cb44b', '#ffe119', '#0082c8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#d2f53c',
+               '#fabebe', '#008080', '#e6beff', '#aa6e28', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1',
+               '#000080', '#808080', '#000000', '#71e441']
 
 if not PRESENTING:
     USERS = USERS[:10]
@@ -174,7 +177,6 @@ def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
     fixation_cds.data = get_fixation_points(X, Y).data
 
 
-
 def color_select_callback(attr, old, new):
     alpha = []
     colors = []
@@ -220,10 +222,11 @@ def metric_select_callback(attr, old, new):
 def image_plot_callback(attr, old, new):
     x = fixation_cds.data['MappedFixationPointX']
     y = fixation_cds.data['MappedFixationPointY']
+
     print(len(fixation_cds.data['MappedFixationPointX']))
-    #for i in range(0, len(fixation_cds.data['MappedFixationPointX'])):
-        #image_plot.circle(x[i], y[i], size=15, fill_color="orange", alpha=0.5)
-        #image_plot.line(x[i], y[i], line_color="navy", alpha=0.5)
+    for i in range(0, len(fixation_cds.data['MappedFixationPointX'])):
+        image_plot.circle(x[i], y[i], size=15, fill_color=GAZE_COLORS[i], alpha=0.5)
+        image_plot.line(x[i], y[i], line_color=GAZE_COLORS[i], alpha=0.5)
 
 
 stim_select.on_change('value', stim_select_callback)
