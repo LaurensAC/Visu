@@ -99,7 +99,8 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
+# mkdocs documentationAls je je sht niet kunt vinden, kijk in 'legacy'
+Added Readme, deleted latex stuff, moved
 /site
 
 # mypy
@@ -108,5 +109,4 @@ venv.bak/
 .gitignore
 .idea/
 MetroMapsEyeTracking.zip
-MetroMapsEyeTracking/
 !/.gitignore
