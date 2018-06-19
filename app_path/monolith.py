@@ -156,6 +156,9 @@ def stim_select_callback(attr, old, new, kwargs=plot_kwargs):
     image_cds.data = get_img(stim).data
     print('got_here')
 
+    # remove current gaze plot
+    remove_glyphs(image_plot, GAZE_COLORS)
+    
     x_dim = int(META[stim]['x_dim'])
     y_dim = int(META[stim]['y_dim'])
     station_count = META[stim]['station_count']
