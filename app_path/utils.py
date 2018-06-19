@@ -6,6 +6,8 @@ from functools import wraps
 from time import time
 import csv
 import pandas as pd
+import numpy as np
+from bokeh.models.renderers import GlyphRenderer
 from chardet.universaldetector import UniversalDetector
 
 
@@ -142,3 +144,10 @@ def lowest_levenshtein(source, target_list):
             matched_target = target
 
     return matched_target
+
+def remove_glyphs(figure, glyph_name_list):
+    renderers = figure.select(dict(type=GlyphRenderer))
+    for r in renderers:
+        if r.name in glyph_name_list:
+            col = r.glyph.y
+            r.data_source.data[col] = [np.nan] * len(r.data_source.data[col])

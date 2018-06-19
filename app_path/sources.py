@@ -95,13 +95,13 @@ def get_matrix_cds(stim, users, df, color_scheme, metric):
             yname.append(users[j])
             count.append(value)
 
-            MappedFixationPointX.append([temp[temp['user'] == users[i]]['MappedFixationPointX'],
-                                        temp[temp['user'] == users[j]]['MappedFixationPointX']])
-            MappedFixationPointY.append([temp[temp['user'] == users[i]]['MappedFixationPointY'],
-                                        temp[temp['user'] == users[j]]['MappedFixationPointY']])
+            MappedFixationPointX.append([temp[temp['user'] == users[i]]['MappedFixationPointX'].values,
+                                        temp[temp['user'] == users[j]]['MappedFixationPointX'].values])
+            MappedFixationPointY.append([temp[temp['user'] == users[i]]['MappedFixationPointY'].values,
+                                        temp[temp['user'] == users[j]]['MappedFixationPointY'].values])
 
-            duration.append([temp[temp['user'] == users[i]]['FixationDuration'],
-                                         temp[temp['user'] == users[j]]['FixationDuration']])
+            duration.append([temp[temp['user'] == users[i]]['FixationDuration'].values,
+                                         temp[temp['user'] == users[j]]['FixationDuration'].values])
 
             if gradient == 1:
                 color.append(colormap[255 - int(round(255 * value))])
@@ -111,7 +111,7 @@ def get_matrix_cds(stim, users, df, color_scheme, metric):
                 color.append(color_scheme)
 
     zeros = np.zeros(pow(len(np.unique(xname)), 2))
-
+    
     # swap out the old data for the new data
     return Cds(data=dict(
         xname=xname,

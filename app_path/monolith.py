@@ -2,15 +2,14 @@ import numpy as np
 import time
 from bokeh.models.widgets import Slider, Select
 from bokeh.plotting import figure
-from bokeh.models import TextInput, CustomJS, Rect
+from bokeh.models import TextInput, CustomJS, Rect, Button
 from bokeh.models.tools import HoverTool, CrosshairTool
 from bokeh.layouts import row, column, widgetbox
 from bokeh.palettes import all_palettes
 from bokeh.io import curdoc
 from more_itertools import unique_everseen
 from read import read_main_df, read_metadata, flippit
-from utils import strack, get_functions_dict
-from sklearn import preprocessing
+from utils import strack, get_functions_dict, remove_glyphs
 from sources import (get_filename, get_matrix_cds, get_img,
                      get_stim_select_options, get_fixation_points)
 
@@ -86,8 +85,11 @@ order_select = Select(title='Ordering', value=ORDER, options=list(ORDERS.keys())
 # Select metric for matrix
 metric_select = Select(title='Metric', value=METRIC, options=list(METRICS.keys()))
 
+# clear button for Gaze plot
+button = Button(label="Clear Gazeplot", button_type="success")
+
 # Widgets will show on the dashboard in this order
-widgets = [text_input, stim_select, color_select, order_select, metric_select]
+widgets = [text_input, stim_select, color_select, order_select, metric_select, button]
 
 # --- Plotting variables
 plot_kwargs = dict()
@@ -238,17 +240,23 @@ def image_plot_callback(attr, old, new):
     duration = fixation_cds.data['FixationDuration']
 
     print(len(fixation_cds.data['MappedFixationPointX']))
+    if len(fixation_cds.data['MappedFixationPointX']) > 400:
+        return
     for i in range(0, len(fixation_cds.data['MappedFixationPointX'])):
         size_scaled = (np.array(duration[i])/float(max(duration[i]))) * 30
-        image_plot.circle(x[i], y[i], size=size_scaled, fill_color=GAZE_COLORS[i], alpha=0.75)
-        image_plot.line(x[i], y[i], line_color=GAZE_COLORS[i], alpha=0.75)
+        image_plot.circle(x[i], y[i], size=size_scaled, fill_color=GAZE_COLORS[i], name=GAZE_COLORS[i], alpha=0.75)
+        image_plot.line(x[i], y[i], line_color=GAZE_COLORS[i], name=GAZE_COLORS[i], alpha=0.75)
+
+def clear_image_plot_callback():
+    remove_glyphs(image_plot, GAZE_COLORS)
 
 
 stim_select.on_change('value', stim_select_callback)
 color_select.on_change('value', color_select_callback)
 order_select.on_change('value', order_select_callback)
 metric_select.on_change('value', metric_select_callback)
-matrix_cds.on_change('selected', image_plot_callback)
+fixation_cds.on_change('data', image_plot_callback)
+button.on_click(clear_image_plot_callback)
 
 # _.-*-._ Plots _.-*-._
 
